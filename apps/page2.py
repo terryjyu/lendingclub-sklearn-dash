@@ -350,9 +350,9 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
         lr_model = joblib.load(MODEL_PATH.joinpath('sklearn_lr.joblib'))
         if lr_model:
             print('lr_model loaded')
-        #rf_model = joblib.load(MODEL_PATH.joinpath('sklearn_rf.joblib'))
-        # if rf_model:
-        #     print('rf_model loaded')
+        rf_model = joblib.load(MODEL_PATH.joinpath('sklearn_rf.joblib'))
+        if rf_model:
+            print('rf_model loaded')
         #print([term, loan_amnt, grade, home_ownership, annual_inc, purpose])
         # if term is not None and term is not '':
         try:
