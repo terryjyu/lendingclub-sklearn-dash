@@ -14,7 +14,7 @@ from app import app
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath("../datasets").resolve()
 #
-df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"))  # Cleaned data
+df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"),low_memory=True)  # Cleaned data
 
 df2['addr_state'].unique()
 

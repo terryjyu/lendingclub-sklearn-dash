@@ -15,20 +15,18 @@ PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath("../datasets").resolve()
 MODEL_PATH =PATH.joinpath("../models").resolve()
 #
-df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"))
+df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"),low_memory=True)
 #df2 = pd.read_excel(DATA_PATH.joinpath("lc_cleaned_combined.xlsx"))
 #print(df2)
 
-lr_model = joblib.load(MODEL_PATH.joinpath('sklearn_lr.joblib'))
+
 #lr_model = joblib.load(MODEL_PATH.joinpath('Final logistic classification-heroku_version.pkl'))
 #lr_model = load_model(MODEL_PATH.joinpath('Final Logistic Classification Model'))
-if lr_model:
-    print('lr_model loaded')
-rf_model = joblib.load(MODEL_PATH.joinpath('sklearn_rf.joblib'))
+
+
 #rf_model = joblib.load(MODEL_PATH.joinpath('Final random forest-heroku_version.pkl'))
 #rf_model = load_model(MODEL_PATH.joinpath('Final random forest Model'))
-if rf_model:
-    print('rf_model loaded')
+
 # app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 
 # app = dash.Dash(__name__) this will read from /assets
@@ -169,7 +167,7 @@ card_form = dbc.Card(
                 ),
 
                 alert,
-                dbc.Input(id='annual_inc', type='number', min=0, max=10000000, step=1000,
+                dbc.Input(id='annual_inc', type='number', min=1000, max=10000000, step=1,
                           placeholder='type in your annual income '),
 
                 html.Br(),
@@ -179,7 +177,7 @@ card_form = dbc.Card(
                 ),
 
                 alert2,
-                dbc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1000, placeholder='up to $40,000'),
+                dbc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1, placeholder='up to $40,000'),
                 html.Br(),
                 # dbc.Button('Get Pre-approved',color='primary',block=True,id='Get Pre-approved'),
                 modal,
@@ -349,6 +347,12 @@ def toggle_modal(n1, n2, is_open):
      Input(component_id='purpose', component_property='value')])
 def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
     if all([term, loan_amnt, grade, home_ownership, annual_inc, purpose]):
+        lr_model = joblib.load(MODEL_PATH.joinpath('sklearn_lr.joblib'))
+        if lr_model:
+            print('lr_model loaded')
+        #rf_model = joblib.load(MODEL_PATH.joinpath('sklearn_rf.joblib'))
+        # if rf_model:
+        #     print('rf_model loaded')
         #print([term, loan_amnt, grade, home_ownership, annual_inc, purpose])
         # if term is not None and term is not '':
         try:
@@ -370,8 +374,9 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
             #                                                     'purpose': purpose
             #                                                     }, ignore_index=True)
             ### label encode the categorical values and convert them to numbers
-            le = LabelEncoder()
+
             print(user_df)
+            le=LabelEncoder()
             for i in ['term', 'grade', 'emp_length', 'home_ownership', 'purpose']:
                 le.fit(user_df[i].astype(str))
                 user_df[i] = le.transform(user_df[i].astype(str))
@@ -379,10 +384,12 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
 
             prob_lr = lr_model.predict_proba(user_df)[0][1]
             print(prob_lr)
-            prob_rf = rf_model.predict_proba(user_df)[0][1]
+            #prob_rf = rf_model.predict_proba(user_df)[0][1]
+            prob_rf = 0.80
             print(prob_rf)
             #prob_lr = predict_model(lr_model, data=user_df).Score[0]
             #prob_rf = predict_model(rf_model, data=user_df).Score[0]
+
             prob = (prob_lr + prob_rf*3) / 4
             # print(prob)
             # print('With the above information, you have {} chance of getting a loan amount of ${:,.2f} from Lending Club'.format(prob, loan_amnt))
