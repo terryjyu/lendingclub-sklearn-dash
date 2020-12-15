@@ -200,9 +200,9 @@ chart1=html.Div([
 
 data_table2=html.Div([
             dcc.Markdown('''
-    **Historical Loan Data by State**
+    __**Historical Loan Data by State**__
 
-    *Select states to generate a distribution histogram(default NorthEastern states*
+    *Select states to generate a distribution histogram(default North Eastern states) *
     '''),
         dash_table.DataTable(
             id='datatable2_id',
@@ -417,7 +417,10 @@ layout = html.Div([
     dbc.Row([
         dbc.Col(html.H3("Investor Data Exploration Page"), width={'size': 6, 'offset': 5}),
     ]),  # col1
-
+    dbc.Row([
+        html.Br(),
+        html.Br(),
+        ]),
     # 2nd row___________________data table and dropdown+chart
     dbc.Row([
         dbc.Col(data_table1,               # r2c1
@@ -433,7 +436,7 @@ layout = html.Div([
         dbc.Col(chart2, width={'size': 6, 'offset': 0},align='center'),  # r3 col2
 
 
-    ], justify='around',style={'fontcolor':'rgb(255,255,255)'}),
+    ], justify='end',style={'fontcolor':'rgb(255,255,255)'}),
   # 4th row
     dbc.Row([
     dbc.Col(map_chart,width={'size':10,"order":"1"}),

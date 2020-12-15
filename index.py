@@ -41,7 +41,7 @@ def display_page(pathname):
         # app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
         return page2.layout
     else:
-        return " __________________________________Feeling lucky today? :)_________________________________"
+        return " _____________________________Feeling lucky today? Click above:)_________________________________"
 
 
 if __name__ == '__main__':
