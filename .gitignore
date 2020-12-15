@@ -1,0 +1,8 @@
+etc
+Lib
+Scripts
+pyvenv.cfg
+venv
+*.pyc
+.env
+.DS_Store
