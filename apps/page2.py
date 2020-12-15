@@ -384,8 +384,8 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
 
             prob_lr = lr_model.predict_proba(user_df)[0][1]
             print(prob_lr)
-            #prob_rf = rf_model.predict_proba(user_df)[0][1]
-            prob_rf = 0.80
+            prob_rf = rf_model.predict_proba(user_df)[0][1]
+            #prob_rf = 0.80
             print(prob_rf)
             #prob_lr = predict_model(lr_model, data=user_df).Score[0]
             #prob_rf = predict_model(rf_model, data=user_df).Score[0]
