@@ -1,5 +1,5 @@
 # lendingclub-sklearn-dash
-This is a cool project for utilizing Dash and Plotly as an interactive tool for investor data exploration and an alternative tool to give loan approval odds prediction of Lending Club.
+This is a cool project for utilizing Dash and Plotly as an interactive tool for data exploration and an alternative tool to give loan approval odds prediction of Lending Club.
 
 The original dataset comes from Kaggle https://www.kaggle.com/husainsb/lendingclub-issued-loans and has 690.95 MB data(train+test) from 2007 to 20017.
 Dataset has been cleaned in Jupyter notebook and columns have been dropped based on feature selection done in pycaret.
