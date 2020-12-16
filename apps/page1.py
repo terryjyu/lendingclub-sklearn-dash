@@ -261,10 +261,6 @@ data_table2=html.Div([
                      },
                      'backgroundColor':'#2f8694',
                      'color':'white'
-
-
-
-
                 },
                 {
                      'if':{
@@ -274,10 +270,6 @@ data_table2=html.Div([
                      },
                      'backgroundColor':'#2f8694',
                      'color':'white'
-
-
-
-
                 },
                 {
                      'if':{
@@ -287,13 +279,7 @@ data_table2=html.Div([
                      },
                      'backgroundColor':'#2f8694',
                      'color':'white'
-
-
-
-
                 },
-
-
 
                  {
                      'if':{
@@ -303,10 +289,6 @@ data_table2=html.Div([
                      },
                      'backgroundColor':'#924f48',
                      'color':'white'
-
-
-
-
                 },
                 {
                      'if':{
@@ -317,9 +299,6 @@ data_table2=html.Div([
                      'backgroundColor':'#924f48',
                      'color':'white'
 
-
-
-
                 },
                 {
                      'if':{
@@ -329,24 +308,10 @@ data_table2=html.Div([
                      },
                      'backgroundColor':'#924f48',
                      'color':'white'
-
-
-
-
                 },
-
-
-
-
-
-
             ],
 
-
         )])
-
-
-
 
 
 chart2=html.Div([
@@ -415,41 +380,46 @@ box_plot=dcc.Graph(id="box-plot")
 layout = html.Div([
     # 1st row__________________
     dbc.Row([
-        dbc.Col(html.H3("Investor Data Exploration Page"), width={'size': 6, 'offset': 5}),
+        dbc.Col(html.H2("Lending Club Investor Data Exploration Page"), width={'size': 6, 'offset': 4}),
+    html.Br(),
     ]),  # col1
     dbc.Row([
         html.Br(),
+        dbc.Col(dcc.Markdown("*LendingClub is a platform that people can borrow and lend money with quoted interest rate calculated by LendingClub based borrower's credit profile. Lenders have access to the loan terms, borrower’s credit report, and some other borrower's information. According to Lending Club, the platform can produce an average annual return rate of 5.14% for the lenders, which is similar to the stock market performace and higher return rate than the U.S. Treasury bond. This page includes visualizations for potential borrowers and lenders who would like to explore the historical statistics of LendingClub for making investment decisions*"), width={'size': 6, 'offset': 3}),
+    ]),
         html.Br(),
-        ]),
+
     # 2nd row___________________data table and dropdown+chart
-    dbc.Row([
+        dbc.Row([
         dbc.Col(data_table1,               # r2c1
                 width={'size': 5, 'offset': 1}),
         dbc.Col(chart1,                     #r2c2
-                width={'size': 6, 'offset': 0})
+                width={'size': 5, 'offset': 0})
 
     ]),
     # 3rd row__________________
     html.Br(),
     dbc.Row([
-        dbc.Col(data_table2, width={'size': 5, 'offset': 1},align='center'),  # r3 col1
-        dbc.Col(chart2, width={'size': 6, 'offset': 0},align='center'),  # r3 col2
+        dbc.Col(data_table2,
+                width={'size': 5, 'offset': 1}),  # r3 col1
+        dbc.Col(chart2,
+                width={'size': 5, 'offset': 0}),  # r3 col2
 
 
-    ], justify='end',style={'fontcolor':'rgb(255,255,255)'}),
+    ],style={'fontcolor':'rgb(255,255,255)'}),
   # 4th row
     dbc.Row([
-    dbc.Col(map_chart,width={'size':10,"order":"1"}),
-    dbc.Col([html.Br(),html.P('Choose a year:'),map_io],width={'size':2,"order":"last"})
-        #dbc.Col(chart2,width={'size':4,"order":"last"}),
+    dbc.Col(map_chart,width={'size':10,"offset":"-1"}),
+    dbc.Col([html.Br(),html.P('Choose a year:'),map_io],width={'size':1})
 
-    ], justify='end'),
+
+    ],),
     #5th row
     dbc.Row([
 
-        dbc.Col([box_input,html.P('Choose your x,y to explore relationships: few secs to load your x and y inputs...',style={'color':'green'},)],width={'size': 2, 'offset': 1},align='center'),
+        dbc.Col([box_input,html.P('Choose your x,y to explore relationships: few secs to load your x and y inputs...',style={'color':'green'},)],width={'size': 2, 'offset': 1}),
 
-        dbc.Col(box_plot,width={'size':9,"order":"last"}),
+        dbc.Col(box_plot,width={'size':8,"order":"last"}),
 
     ], justify='around'),
 ],style={'color':'rgb(255,255,255)'})

@@ -21,14 +21,6 @@ app.layout = html.Div([
     dbc.Row([html.Div(id='page-content', children=[])])
 ])
 
-# app.layout = html.Div([
-#     dcc.Location(id='url', refresh=False),
-#     html.Div([
-#         dcc.Link('Investor EDA Page|', href='/apps/page1'),   # first page
-#         dcc.Link('Lender Prediction Page', href='/apps/page2'),   #second page
-#     ], className="row"),
-#     html.Div(id='page-content', children=[])
-# ])
 
 
 @app.callback(Output('page-content', 'children'),

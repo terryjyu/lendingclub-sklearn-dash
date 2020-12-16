@@ -271,14 +271,14 @@ cards = dbc.CardColumns(
 layout = html.Div([
     # 1st row__________________
     dbc.Row([
-        dbc.Col(html.H3("Lender Prediction Page",style={'color':'rgb(255,255,255)'}), width={'size': 6, 'offset': 5}),
+        dbc.Col(html.H2("Lender Prediction Page",style={'color':'rgb(255,255,255)'}), width={'size': 6, 'offset': 5}),
     ]),  # col1
 
     # 2nd row___________________
     dbc.Row([
-        dbc.Col(html.H5(
-            "**LendingClub enabled borrowers to create unsecured personal loans between $1,000 and $40,000. The standard loan period was three years. Investors were able to search and browse the loan listings on LendingClub website and select loans that they wanted to invest in based on the information supplied about the borrower, amount of loan, loan grade, and loan purpose. Investors made money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee.**"),
-                width={'size': 10, 'offset': 1},style={'color':'rgb(255,255,255)'}),
+        dbc.Col(dcc.Markdown(
+            "_LendingClub enabled borrowers to create unsecured personal loans between $1,000 and $40,000. The standard loan period was three years. Investors were able to search and browse the loan listings on LendingClub website and select loans that they wanted to invest in based on the information supplied about the borrower, amount of loan, loan grade, and loan purpose. Investors made money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee._"),
+                width={'size': 8, 'offset': 2},style={'color':'rgb(255,255,255)'}),
     ]),
     # 3rd row__________________
     html.Br(),
