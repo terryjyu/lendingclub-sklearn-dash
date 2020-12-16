@@ -286,17 +286,20 @@ layout = html.Div([
     html.Br(),
     html.Br(),
     dbc.Row([
-        dbc.Col(card_dropdown, width={'size': 4, 'offset': 1}),  # card col1
-        dbc.Col(card_form, width=4),  # card col2
+        dbc.Col(card_dropdown, width={'size': 5, 'offset': 1}),  # card col1
+        dbc.Col(card_form, width={'size':5,'offset':0})    # card col2
 
-        dbc.Col(cards)
-    ], justify='left'),
 
+    ]),#, justify='left'
+    dbc.Row([
+        dbc.Col(dbc.Col(cards),     # three cards -hyperlink image cards
+                )
+    ]),
     dbc.Row([
         # dbc.Col(card_content_4)
         dbc.Col(card_content_2,width={'size': 10, 'offset': 1},style={'color':'rgb(255,255,255)'}),
 
-    ], justify='left'),
+    ]),#, justify='left'
 ])
 
 
