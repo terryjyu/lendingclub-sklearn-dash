@@ -59,7 +59,7 @@ card_dropdown = dbc.Card(
                              value='36 Months', clearable=False, style={"color": "#000000"}),
                 html.Br(),
                 html.H3(
-                    "Your years of employeement :",  # 1-q-2
+                    "Your years of employment :",  # 1-q-2
                     className="card1-text2",
                 ),
                 dcc.Dropdown(id='emp_length',  # a-2
@@ -107,10 +107,10 @@ alert = html.Div(
         dbc.Button("Why are we asking your income?", id="alert-toggle-auto", className="mr-1"),
         html.Hr(),
         dbc.Alert(
-            "Precise ML preditions rely on quality data! However, your income info is never stored!",
+            "Precise ML predictions rely on quality data! However, your income info is never stored!",
             id="alert-auto",
             is_open=True,
-            duration=4000,
+            duration=10000,
         ),
     ]
 )
@@ -120,20 +120,20 @@ alert2 = html.Div(
         dbc.Button("We don't collect your data.", id="alert-toggle-auto2", className="mr-1"),
         html.Hr(),
         dbc.Alert(
-            "ML predictions are pretrained and your loan info is never stored!",
+            "ML model predictions on your loan are pretrained and your loan info is never stored!",
             id="alert-auto2",
             is_open=True,
-            duration=4000,
+            duration=30000,
         ),
     ]
 )
 ###########################prediction result modal############
 modal = html.Div(
     [
-        dbc.Button("Get Pre-approved", id="Get Pre-approved", color='primary', block=True, ),
+        dbc.Button("Get Pre-approved !", id="Get Pre-approved", color='primary', block=True, ),
         dbc.Modal(
             [
-                dbc.ModalHeader("Your Approving Odds",style={'color':'white'}),
+                dbc.ModalHeader("Your Approval Odds",style={'color':'white'}),
                 dbc.ModalBody(str(approval_str[0]), id='modal_result',style={'color':"white"}),
                 dbc.ModalFooter(
                     dbc.Button(
@@ -177,7 +177,7 @@ card_form = dbc.Card(
                 ),
 
                 alert2,
-                dbc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1, placeholder='up to $40,000'),
+                dbc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1, placeholder='from $1000 up to $40,000'),
                 html.Br(),
                 # dbc.Button('Get Pre-approved',color='primary',block=True,id='Get Pre-approved'),
                 modal,
@@ -277,7 +277,7 @@ layout = html.Div([
     # 2nd row___________________
     dbc.Row([
         dbc.Col(dcc.Markdown(
-            "_LendingClub enabled borrowers to create unsecured personal loans between $1,000 and $40,000. The standard loan period was three years. Investors were able to search and browse the loan listings on LendingClub website and select loans that they wanted to invest in based on the information supplied about the borrower, amount of loan, loan grade, and loan purpose. Investors made money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee._"),
+            "_LendingClub enable borrowers to create unsecured personal loans between $1,000 and $40,000. The standard loan period is three years. Investors are able to search and browse the loan listings on LendingClub website and select loans that they want to invest in based on the information supplied about the borrower, amount of loan, loan grade, and loan purpose. Investors make money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee._"),
                 width={'size': 8, 'offset': 2},style={'color':'rgb(255,255,255)'}),
     ]),
     # 3rd row__________________
@@ -395,8 +395,12 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
 
             prob = (prob_lr + prob_rf*3) / 4
             # print(prob)
-            # print('With the above information, you have {} chance of getting a loan amount of ${:,.2f} from Lending Club'.format(prob, loan_amnt))
-            approval_str = [
+            if loan_amnt <1000 or loan_amnt>40000:
+                approval_str=[
+                "Although Lending Club only offer loans between $1000 and $40000, according to our ML prediction, you might have {:.2%} chance of getting a loan amount of $ {} from Lending Club".format(
+                    prob, loan_amnt)]
+            else:
+                approval_str = [
                 'With the above information, you have {:.2%} chance of getting a loan amount of $ {} from Lending Club'.format(
                     prob, loan_amnt)]
             return approval_str
@@ -404,7 +408,7 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
             approval_str = ['Unable to give you a prediction']
             return approval_str
     else:
-        approval_str = ['opppps...something is missing from the info-happy hoiday!']
+        approval_str = ['opppps...something is missing from the info:) Happy Holiday!']
         return approval_str
 
 

@@ -73,6 +73,9 @@ dff4['Fully_Paid_percentage']=(dff4['Fully_Paid']/(dff4['Fully_Paid']+dff4['Char
 
 
     ###########frist row########
+from dash_table.Format import Format,Group, Scheme,Symbol
+# for data table formatting
+formatted=Format().scheme(Scheme.fixed).precision(0).symbol(Symbol.yes).group(Group.yes).group_delimiter(',')
 data_table1 =html.Div([dcc.Markdown('''
     **Historical Loan Data by Region**
 
@@ -82,7 +85,11 @@ data_table1 =html.Div([dcc.Markdown('''
             id='datatable_id',
             data=dff2.to_dict('records'),
             columns=[
-                {"name": i.title(), "id": i, "deletable": False, "selectable": True} for i in dff2.columns
+                {"name": i.title(), "id": i, "deletable": False, "selectable": True,
+                 "type":"numeric",
+                 "format": formatted
+                                  } for i in dff2.columns
+
             ],
             tooltip={
         'addr_state': 'Click the box to the left to generate histogram',
@@ -107,15 +114,16 @@ data_table1 =html.Div([dcc.Markdown('''
             # },
             # fixed_rows={ 'headers': True, 'data': 0 },
             # virtualization=False,
+
             style_cell_conditional=[
                 {'if': {'column_id': 'region'},
                  'width': '40%', 'textAlign': 'left'},
                 {'if': {'column_id': 'loan_amnt'},
-                 'width': '20%', 'textAlign': 'left'},
+                 'width': '20%', 'textAlign': 'right'},
                 {'if': {'column_id': 'funded_amnt'},
-                 'width': '20%', 'textAlign': 'left'},
+                 'width': '20%', 'textAlign': 'right'},
                 {'if': {'column_id': 'funded_amnt_inv'},
-                 'width': '20%', 'textAlign': 'left'},
+                 'width': '20%', 'textAlign': 'right'},
             ],
             style_as_list_view=False,
             style_cell={'padding':'5px','backgroundColor':'#313539',
@@ -208,7 +216,10 @@ data_table2=html.Div([
             id='datatable2_id',
             data=dff3.to_dict('records'),
             columns=[
-                {"name": i.title(), "id": i, "deletable": False, "selectable": True} for i in dff3.columns
+                {"name": i.title(), "id": i, "deletable": False, "selectable": True,
+                 "type": "numeric",
+                 "format": formatted
+                 } for i in dff3.columns
             ],
             tooltip={
         'addr_state': 'Click the box to the left to generate histogram',
@@ -238,11 +249,11 @@ data_table2=html.Div([
                 {'if': {'column_id': 'addr_state'},
                  'width': '40%', 'textAlign': 'left'},
                 {'if': {'column_id': 'loan_amnt'},
-                 'width': '20%', 'textAlign': 'left'},
+                 'width': '20%', 'textAlign': 'right'},
                 {'if': {'column_id': 'funded_amnt'},
-                 'width': '20%', 'textAlign': 'left'},
+                 'width': '20%', 'textAlign': 'right'},
                 {'if': {'column_id': 'funded_amnt_inv'},
-                 'width': '20%', 'textAlign': 'left'},
+                 'width': '20%', 'textAlign': 'right'},
             ],style_cell={'padding':'5px',
                             'backgroundColor':'#313539',
                           'color':'white'},
@@ -385,7 +396,7 @@ layout = html.Div([
     ]),  # col1
     dbc.Row([
         html.Br(),
-        dbc.Col(dcc.Markdown("*LendingClub is a platform that people can borrow and lend money with quoted interest rate calculated by LendingClub based borrower's credit profile. Lenders have access to the loan terms, borrower’s credit report, and some other borrower's information. According to Lending Club, the platform can produce an average annual return rate of 5.14% for the lenders, which is similar to the stock market performace and higher return rate than the U.S. Treasury bond. This page includes visualizations for potential borrowers and lenders who would like to explore the historical statistics of LendingClub for making investment decisions*"), width={'size': 6, 'offset': 3}),
+        dbc.Col(dcc.Markdown("*LendingClub is a platform that people can borrow and lend money with quoted interest rate calculated by LendingClub based borrower's credit profile. Lenders have access to the loan terms, borrower’s credit report, and some other borrower's information. According to Lending Club, the platform can produce an average annulized return rate of 5.14% for the lenders, which is close to the stock market performace and higher in return rate than the U.S. Treasury bond. This page includes visualizations for potential borrowers and lenders who would like to explore the historical statistics of LendingClub for making financial decisions.*"), width={'size': 6, 'offset': 3}),
     ]),
         html.Br(),
 
@@ -425,17 +436,6 @@ layout = html.Div([
 ],style={'color':'rgb(255,255,255)'})
 #__________________________App Call Back- page 1----------##########
 
-# @app.callback(
-#     Output(component_id='my-bar', component_property='figure'),
-#     [Input(component_id='genre-dropdown', component_property='value'),
-#      Input(component_id='sales-dropdown', component_property='value')]
-# )
-# def display_value(genre_chosen, sales_chosen):
-#     dfv_fltrd = dfv[dfv['Genre'] == genre_chosen]
-#     dfv_fltrd = dfv_fltrd.nlargest(10, sales_chosen)
-#     fig = px.bar(dfv_fltrd, x='Video Game', y=sales_chosen, color='Platform')
-#     fig = fig.update_yaxes(tickprefix="$", ticksuffix="M")
-#     return fig
 @app.callback(
     [Output('piechart', 'figure'),
      Output('linechart', 'figure'),
@@ -466,7 +466,7 @@ def update_data(chosen_rows, chosen_rows2, piedropval, linedropval):
     # extract list of chosen regions
     list_chosen_regions = df_filterd['region'].tolist()
     # filter original df according to chosen regions
-    # because original df has all the complete month data from 2007-2015
+    # because original df has all the complete month data from 2007-2017
     df_line = df2[df2['region'].isin(list_chosen_regions)]
 
     line_chart = px.histogram(title='Loan Statistics by Region Over Year',
@@ -486,7 +486,7 @@ def update_data(chosen_rows, chosen_rows2, piedropval, linedropval):
     line_chart2 = px.histogram(title='Loan Statistics by State Over Year',
                                data_frame=df_line2,
                                x='year',
-                               y=linedropval,
+                               y=piedropval,
                                color='addr_state',
                                histfunc='sum',
                                labels={'addr_state': 'States', 'year': 'year'})
