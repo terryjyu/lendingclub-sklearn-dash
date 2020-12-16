@@ -8,3 +8,5 @@ Logistic Regression and Random Forest with 50 trees(down from 100 trees for Hero
 For successful Heroku deployment, a paid option is selected for one month due to RAM constraints causing the entire app crash at starting up or with user interaction on the web page.
 Despite careful scrutiny on code simplification to make it more efficient to run on Heroku servers, the app would constantly max out 1GB RAM and cause performance concerns. 
 Link to the Heroku app is: https://lendingdash.herokuapp.com/
+
+PS: when you are selecting from a dropdown, the app will update the graph, it's just super slow. Yes, every dropdown works and just takes time!
