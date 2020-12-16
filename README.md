@@ -11,5 +11,7 @@ For successful Heroku deployment, a paid option is selected for one month due to
 
 Despite careful scrutiny on code simplification to make it more efficient to run on Heroku servers, the app would constantly max out 1GB RAM and cause performance concerns. 
 Link to the Heroku app is: https://lendingdash.herokuapp.com/
+Many components have been implemented using dbc(dash bootstrap component) and dcc(dash core component). Links to these components can be found here: https://dash-bootstrap-components.opensource.faculty.ai/ and https://dash.plotly.com/dash-core-components.
 
-PS: when you are selecting from a dropdown, the app will update the graph, it's just super slow. Yes, every dropdown works and just takes time!
+
+PS: when you are selecting from a dropdown, the app will update the graph y-axis, it's just super slow on Heroku. Yes, every dropdown works and just takes time! And yes, many fields have hover tooltips such as in datatables where it can show descriptions for columns. Yes, these dash datatables work like normal spreadsheet, however, the editing feauture has been disabled while normal sorting feature is still available.
