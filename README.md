@@ -8,7 +8,7 @@ Investor EDA Page: https://lendingdash.herokuapp.com/apps/page1
 
 Prediction Page: https://lendingdash.herokuapp.com/apps/page2
 
-The original dataset comes from Kaggle https://www.kaggle.com/husainsb/lendingclub-issued-loans and has 690.95 MB data(train+test) from 2007 to 20017.
+The original dataset comes from Kaggle https://www.kaggle.com/husainsb/lendingclub-issued-loans and has 690.95 MB data(train+test) from 2007 to 2017.
 Dataset has been cleaned in Jupyter notebook and columns have been dropped based on feature selection done in pycaret.
 
 Logistic Regression and Random Forest have been determined good regressors in pycaret and they are re-trained with sklearn to allow Heroku deployment with around 2% accuracy drop in both 
