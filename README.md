@@ -3,7 +3,9 @@ This is a cool project for utilizing Dash and Plotly as an interactive tool for 
 Link to the Heroku app is: https://lendingdash.herokuapp.com/
 
 This app consists of two pages:
-EDA Page: https://lendingdash.herokuapp.com/apps/page1
+
+Investor EDA Page: https://lendingdash.herokuapp.com/apps/page1
+
 Prediction Page: https://lendingdash.herokuapp.com/apps/page2
 
 The original dataset comes from Kaggle https://www.kaggle.com/husainsb/lendingclub-issued-loans and has 690.95 MB data(train+test) from 2007 to 20017.
