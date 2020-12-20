@@ -1,7 +1,7 @@
 # lendingclub-sklearn-dash
 This is a cool project for utilizing Dash and Plotly as an interactive tool for data exploration and an alternative tool to give loan approval odds prediction of Lending Club.
 This app was original uploaded to Heroku.
-Link to the Heroku app is: https://lendingdash.herokuapp.com/
+Link to the Heroku app is: https://lendingdash.herokuapp.com/ (12/20/2020: this server has been downgraded and will have performance issue so if you are having issues accessing, use PythonAnywhere server below)
 
 
 However, when uploaded to PythonAnywhere, it actually has much much better performanace without the need to upgrade to a very expensive server option.
@@ -26,7 +26,8 @@ Link to the Heroku app is: https://lendingdash.herokuapp.com/
 Many components have been implemented using dbc(dash bootstrap component) and dcc(dash core component). Links to these components can be found here: https://dash-bootstrap-components.opensource.faculty.ai/ and https://dash.plotly.com/dash-core-components.
 
 ********
-Update 12/20/2020: a working instance of this app uploaded to $5/month option on PythonAnywhere is performaing much better than on Heroku where it required a $500/1dyno/month; will try to implement the original pycaret model on PythonAnywhere
+Update 12/20/2020: a working instance of this app uploaded to $5/month option on PythonAnywhere is performaing much better than on Heroku where it required a $500/1dyno/month; will try to implement the original pycaret model on PythonAnywhere; Heroku server has been downgraded.
+
 
 ********
 PS: when you are selecting from a dropdown, the app will update the graph y-axis, it's just super slow on Heroku. Yes, every dropdown works and just takes time! And yes, many fields have hover tooltips such as in datatables where it can show descriptions for columns. Yes, these dash datatables work like normal spreadsheet, however, the editing feauture has been disabled while normal sorting feature is still available.
