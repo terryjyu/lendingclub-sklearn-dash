@@ -1,6 +1,8 @@
 # lendingclub-sklearn-dash
 This is a cool project for utilizing Dash and Plotly as an interactive tool for data exploration and an alternative tool to give loan approval odds prediction of Lending Club.
-This app was original uploaded to Heroku.
+
+This app was originally uploaded to Heroku. And it was a bad idea to use Heroku for this app. PythonAnywhere has much faster servers!
+
 Link to the Heroku app is: https://lendingdash.herokuapp.com/ (12/20/2020: this server has been downgraded and will have performance issue so if you are having issues accessing, use PythonAnywhere server below)
 
 
