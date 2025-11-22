@@ -278,24 +278,24 @@ layout = html.Div([
             "_LendingClub enable borrowers to create unsecured personal loans between $1,000 and $40,000. The standard loan period is three years. Investors are able to search and browse the loan listings on LendingClub website and select loans that they want to invest in based on the information supplied about the borrower, amount of loan, loan grade, and loan purpose. Investors make money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee._"),
                 width={'size': 8, 'offset': 2},style={'color':'rgb(255,255,255)'}),
     ]),
+
     # 3rd row__________________
     html.Br(),
-    html.Br(),
-    html.Br(),
-    html.Br(),
-    html.Div([
-        html.Div(card_dropdown, className="col-md-5 offset-md-1"),
-        html.Div(card_form, className="col-md-5")
-    ], className="row"),
     dbc.Row([
-        dbc.Col(dbc.Col(cards),     # three cards -hyperlink image cards
-                )
+        dbc.Col(card_dropdown, width={'size': 5, 'offset': 1}),
+        dbc.Col(card_form, width=5)
     ]),
-    dbc.Row([
-        # dbc.Col(card_content_4)
-        dbc.Col(card_content_2,width={'size': 10, 'offset': 1},style={'color':'rgb(255,255,255)'}),
+    html.Br(),
 
-    ]),#, justify='left'
+    # 4th row__________________
+    dbc.Row([
+        dbc.Col(cards, width={'size': 10, 'offset': 1})
+    ]),
+    
+    # 5th row__________________
+    dbc.Row([
+        dbc.Col(card_content_2, width={'size': 10, 'offset': 1}, style={'color':'rgb(255,255,255)'}),
+    ]),
 ])
 
 
