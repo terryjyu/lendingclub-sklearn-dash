@@ -116,7 +116,7 @@ card_dropdown = html.Div(
 ############################### Annual income policy alert component #####################
 alert = html.Div(
     [
-        dbc.Button("Why are we asking your income?", id="alert-toggle-auto", className="mr-1"),
+        dbc.Button("Why are we asking your income?", id="alert-toggle-auto", className="me-1 mb-2", color="info"),
         html.Hr(),
         dbc.Alert(
             "Precise ML predictions rely on quality data! However, your income info is never stored!",
@@ -129,7 +129,7 @@ alert = html.Div(
 
 alert2 = html.Div(
     [
-        dbc.Button("We don't collect your data.", id="alert-toggle-auto2", className="mr-1"),
+        dbc.Button("We don't collect your data.", id="alert-toggle-auto2", className="me-1 mb-2", color="info"),
         html.Hr(),
         dbc.Alert(
             "ML model predictions on your loan are pretrained and your loan info is never stored!",
@@ -145,7 +145,7 @@ modal = html.Div(
         dbc.Button("Get Pre-approved !", id="Get Pre-approved", color='primary', className="w-100"),
         dbc.Modal(
             [
-                dbc.ModalHeader("Your Approval Odds"),
+                dbc.ModalHeader(dbc.ModalTitle("Your Approval Odds")),
                 dbc.ModalBody(str(approval_str[0]), id='modal_result'),
                 dbc.ModalFooter(
                     dbc.Button("Close", id="close-centered", className="ms-auto", n_clicks=0)
@@ -159,10 +159,10 @@ modal = html.Div(
 print(modal)
 ######################### 2nd card ##########################
 
-card_form = html.Div(
+card_form = dbc.Card(
     [
-        html.Img(src='/assets/ap.png', className="card-img-top", title="Approval Prediction", alt='Approval Prediction'),
-        html.Div(
+        dbc.CardImg(src='/assets/ap.png', top=True, title="Approval Prediction", alt='Approval Prediction'),
+        dbc.CardBody(
             [
                 html.H3(
                     "What's your annual income :",  # 2-q-1
@@ -171,6 +171,7 @@ card_form = html.Div(
                 dcc.Input(id='annual_inc', type='number', min=1000, max=10000000, step=1, 
                           placeholder='type in your annual income ', className="form-control"),
                 html.Br(),
+                alert,
                 html.H3(
                     "Amount of loan you are applying :",  # 2-q-2
                     className="card2-text1",
@@ -178,18 +179,16 @@ card_form = html.Div(
                 dcc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1, 
                           placeholder='from $1000 up to $40,000', className="form-control"),
                 html.Br(),
-                # modal,
-                html.Div([
-                    dbc.Button("Get Pre-approved !", id="Get Pre-approved", color='primary', className="w-100"),
-                    html.Div("Prediction results will appear here (Modal disabled for stability)", className="text-white mt-2")
-                ]),
+                alert2,
+                modal,
                 html.Div(id='result_rf'),
                 html.Div(id='result_lr'),
-            ],
-            className="card-body"
+            ]
         )
     ],
-    className="card bg-secondary text-white"
+    color="secondary",
+    inverse=False, # explicit false or just omit. Using className for text color if needed.
+    className="text-white"
 )
 ##################################3rd card#######################
 
