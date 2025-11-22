@@ -164,30 +164,37 @@ card_form = dbc.Card(
         dbc.CardImg(src='/assets/ap.png', top=True, title="Approval Prediction", alt='Approval Prediction'),
         dbc.CardBody(
             [
+                html.H4(["Get pre-approved and it doesn't hurt your credit score",
+                         dbc.Badge("We don't check your credit score unlike other platforms", className='ms-1',
+                                   color='warning', pill=True,
+                                   href='https://www.consumer.ftc.gov/articles/0151-disputing-errors-credit-reports',
+                                   id='rf-lr-badge2')]),
+                html.H6("Choose from below:", className="card-subtitle"),
+                html.Br(),
                 html.H3(
                     "What's your annual income :",  # 2-q-1
                     className="card2-text1",
                 ),
+                alert,
                 dcc.Input(id='annual_inc', type='number', min=1000, max=10000000, step=1, 
                           placeholder='type in your annual income ', className="form-control"),
                 html.Br(),
-                alert,
                 html.H3(
                     "Amount of loan you are applying :",  # 2-q-2
                     className="card2-text1",
                 ),
+                alert2,
                 dcc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1, 
                           placeholder='from $1000 up to $40,000', className="form-control"),
                 html.Br(),
-                alert2,
                 modal,
                 html.Div(id='result_rf'),
                 html.Div(id='result_lr'),
             ]
         )
     ],
-    color="secondary",
-    inverse=False, # explicit false or just omit. Using className for text color if needed.
+    color="dark",
+    inverse=False, # Using className for text color
     className="text-white"
 )
 ##################################3rd card#######################
