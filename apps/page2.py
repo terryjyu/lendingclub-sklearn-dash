@@ -161,6 +161,7 @@ print(modal)
 
 card_form = html.Div(
     [
+        html.Img(src='/assets/ap.png', className="card-img-top", title="Approval Prediction", alt='Approval Prediction'),
         html.Div(
             [
                 html.H3(
