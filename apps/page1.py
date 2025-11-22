@@ -1,7 +1,5 @@
-import dash_table
-import dash_core_components as dcc
+from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
-import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import plotly.express as px
@@ -73,7 +71,7 @@ dff4['Fully_Paid_percentage']=(dff4['Fully_Paid']/(dff4['Fully_Paid']+dff4['Char
 
 
     ###########frist row########
-from dash_table.Format import Format,Group, Scheme,Symbol
+from dash.dash_table.Format import Format,Group, Scheme,Symbol
 # for data table formatting
 formatted=Format().scheme(Scheme.fixed).precision(0).symbol(Symbol.yes).group(Group.yes).group_delimiter(',')
 data_table1 =html.Div([dcc.Markdown('''
@@ -114,6 +112,7 @@ data_table1 =html.Div([dcc.Markdown('''
             # },
             # fixed_rows={ 'headers': True, 'data': 0 },
             # virtualization=False,
+            style_table={'overflowX': 'auto'},
 
             style_cell_conditional=[
                 {'if': {'column_id': 'region'},
@@ -244,7 +243,7 @@ data_table2=html.Div([
             # },
             #fixed_rows={ 'headers': True},
             # virtualization=False,
-            style_table={'height':'1000px','overflowY':'auto'},
+            style_table={'height':'1000px','overflowY':'auto', 'overflowX': 'auto'},
             style_cell_conditional=[
                 {'if': {'column_id': 'addr_state'},
                  'width': '40%', 'textAlign': 'left'},
