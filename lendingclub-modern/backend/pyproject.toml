@@ -1,0 +1,24 @@
+[project]
+name = "lendingclub-backend"
+version = "0.1.0"
+description = "FastAPI backend for LendingClub prediction"
+authors = [
+    {name = "Antigravity"}
+]
+readme = "README.md"
+requires-python = "^3.11"
+dependencies = [
+    "fastapi (>=0.121.3,<0.122.0)",
+    "uvicorn (>=0.38.0,<0.39.0)",
+    "scikit-learn (==1.5.0)",
+    "lightgbm (>=4.6.0,<5.0.0)",
+    "pandas (>=2.3.3,<3.0.0)",
+    "joblib (>=1.5.2,<2.0.0)",
+    "pydantic (>=2.12.4,<3.0.0)",
+    "python-multipart (>=0.0.20,<0.0.21)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
