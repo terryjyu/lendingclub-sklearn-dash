@@ -46,6 +46,8 @@ def load_models():
     try:
         print("Loading pre-calculated stats...")
         # Load lightweight JSONs instead of 700MB CSV
+        models["stats_region"] = pd.read_json(os.path.join(model_path, "stats_region.json"), orient="records")
+        models["stats_state"] = pd.read_json(os.path.join(model_path, "stats_state.json"), orient="records")
         models["stats_map"] = pd.read_json(os.path.join(model_path, "stats_map.json"), orient="records")
         
         # Load sample data for boxplots
