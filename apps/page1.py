@@ -1,5 +1,7 @@
 from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import plotly.express as px
@@ -8,432 +10,250 @@ import numpy as np
 import pathlib
 from app import app
 
-#get relative data folder
+# get relative data folder
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath("../datasets").resolve()
-#
-df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"),low_memory=True)  # Cleaned data
 
-df2['addr_state'].unique()
+df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"), low_memory=True)
 
-# Make a list with each of the regions by state.
-
+# Data Processing
 west = ['CA', 'OR', 'UT','WA', 'CO', 'NV', 'AK', 'MT', 'HI', 'WY', 'ID']
 south_west = ['AZ', 'TX', 'NM', 'OK']
 south_east = ['GA', 'NC', 'VA', 'FL', 'KY', 'SC', 'LA', 'AL', 'WV', 'DC', 'AR', 'DE', 'MS', 'TN' ]
 mid_west = ['IL', 'MO', 'MN', 'OH', 'WI', 'KS', 'MI', 'SD', 'IA', 'NE', 'IN', 'ND']
 north_east = ['CT', 'NY', 'PA', 'NJ', 'RI','MA', 'MD', 'VT', 'NH', 'ME']
 
-# make regions
 df2['region'] = np.nan
 def finding_regions(state):
-    if state in west:
-        return 'West'
-    elif state in south_west:
-        return 'SouthWest'
-    elif state in south_east:
-        return 'SouthEast'
-    elif state in mid_west:
-        return 'MidWest'
-    elif state in north_east:
-        return 'NorthEast'
-
+    if state in west: return 'West'
+    elif state in south_west: return 'SouthWest'
+    elif state in south_east: return 'SouthEast'
+    elif state in mid_west: return 'MidWest'
+    elif state in north_east: return 'NorthEast'
+    return 'Other'
 
 df2['region'] = df2['addr_state'].apply(finding_regions)
 
-# making region and state tables for charts
 dff2 = df2.groupby('region', as_index=False)[['loan_amnt','funded_amnt','funded_amnt_inv']].sum()
-
 dff3 = df2.groupby('addr_state', as_index=False)[['loan_amnt','funded_amnt','funded_amnt_inv']].sum()
 
-# add a year column to df2 for x-axis in charts
 pd.to_datetime(df2.issue_d,format='%b-%Y')
 df2['year']=pd.to_datetime(df2.issue_d,format='%b-%Y').dt.year
 
-# make Charged Off, Fully Paid counts, their percentages in table columns
 df2['Charged_Off']=[1 if x=='Charged Off' else 0 for x in df2['loan_status']]
 df2['Fully_Paid']=[1 if x=='Fully Paid' else 0 for x in df2['loan_status']]
 df2['Fully_Paid_percentage']=[1 if x=='Fully Paid' else 0 for x in df2['loan_status']]
-# state, year table Charged off/Fully paid, percentages
+
 dff4 = df2.groupby(['addr_state','year'], as_index=False)[['Charged_Off','Fully_Paid']].sum()
 dff4['Fully_Paid_percentage']=(dff4['Fully_Paid']/(dff4['Fully_Paid']+dff4['Charged_Off'])).round(4)*100
 
 
+# Table Formatting
+from dash.dash_table.Format import Format, Group, Scheme, Symbol
+formatted = Format().scheme(Scheme.fixed).precision(0).symbol(Symbol.yes).group(Group.yes).group_delimiter(',')
 
-###############################################################################################
-###############################################################################################
-###############################################################################################
-# ----------------------------------App Layout - Page 1----------------------##################
+# Styles for Dark Theme tables
+table_header_style = {
+    'backgroundColor': 'rgba(30,30,40,0.8)',
+    'fontWeight': 'bold',
+    'color': 'white',
+    'border': '1px solid rgba(255,255,255,0.1)',
+    'textAlign': 'left'
+}
+table_cell_style = {
+    'backgroundColor': 'rgba(20,20,30,0.5)',
+    'color': '#d1d5db',
+    'border': '1px solid rgba(255,255,255,0.05)',
+    'padding': '10px',
+    'textAlign': 'left'
+}
+table_data_conditional = [
+    {'if': {'row_index': 'odd'}, 'backgroundColor': 'rgba(255,255,255,0.03)'},
+    {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(6, 182, 212, 0.2) !important', 'border': '1px solid #06b6d4 !important'},
+]
 
+# Helper for Glass Cards
+def glass_card(children, title=None):
+    content = []
+    if title:
+        content.append(dmc.Text(title, fw=700, size="xl", c="white", className="mb-4"))
+        content.append(dmc.Divider(color="gray.8", className="mb-4"))
+    content.extend(children if isinstance(children, list) else [children])
+    
+    return dmc.Card(
+        children=content,
+        radius="xl",
+        className="backdrop-blur-md bg-white/5 border border-white/10 shadow-xl p-6 h-full"
+    )
 
+layout = dmc.Container([
+    # Header
+    dmc.Stack([
+        dmc.Title("Investor Data Exploration", order=1, className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 text-4xl font-bold"),
+        dmc.Text("Analyze historical lending data, regional trends, and risk metrics.", c="gray.4")
+    ], className="mb-8 text-center"),
 
-#app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SLATE])
-
-
-    ###########frist row########
-from dash.dash_table.Format import Format,Group, Scheme,Symbol
-# for data table formatting
-formatted=Format().scheme(Scheme.fixed).precision(0).symbol(Symbol.yes).group(Group.yes).group_delimiter(',')
-data_table1 =html.Div([dcc.Markdown('''
-    **Historical Loan Data by Region**
-
-    *Select regions to generate a distribution histogram(default all regions)*
-    ''',),
-                       dash_table.DataTable(
-            id='datatable_id',
-            data=dff2.to_dict('records'),
-            columns=[
-                {"name": i.title(), "id": i, "deletable": False, "selectable": True,
-                 "type":"numeric",
-                 "format": formatted
-                                  } for i in dff2.columns
-
-            ],
-            tooltip={
-        'addr_state': 'Click the box to the left to generate histogram',
-        'loan_amnt': 'Loan Amount Applied by Borrower',
-        'funded_amnt': 'Amount Funded by Lenders',
-        'funded_amnt_inv': 'Total Committed by Investors',
-          },css=[{'selector': '.dash-table-tooltip',
-                  'rule':'background-color: black; font-family:monospace;'}],
-            editable=False,
-            filter_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            row_selectable="multi",
-            row_deletable=False,
-            selected_rows=[],
-            page_action="native",
-            page_current= 0,
-            page_size= 6,
-            # page_action='none',
-            # style_cell={
-            # 'whiteSpace': 'normal'
-            # },
-            # fixed_rows={ 'headers': True, 'data': 0 },
-            # virtualization=False,
-            style_table={'overflowX': 'auto'},
-
-            style_cell_conditional=[
-                {'if': {'column_id': 'region'},
-                 'width': '40%', 'textAlign': 'left'},
-                {'if': {'column_id': 'loan_amnt'},
-                 'width': '20%', 'textAlign': 'right'},
-                {'if': {'column_id': 'funded_amnt'},
-                 'width': '20%', 'textAlign': 'right'},
-                {'if': {'column_id': 'funded_amnt_inv'},
-                 'width': '20%', 'textAlign': 'right'},
-            ],
-            style_as_list_view=False,
-            style_cell={'padding':'5px','backgroundColor':'#313539',
-                          'color':'white'},
-             style_header={'backgroundColor':'#313539',
-                            'fontWeight':'bold'},
-            style_data_conditional=[
-                {
-                    'if':{'row_index':'odd'},
-                    'backgroundColor':'rgb(50,50,50)'
-                },
-                {
-                     'if':{
-                         'column_id':'loan_amnt',
-
-                         'filter_query':'{{loan_amnt}}={}'.format(dff2['loan_amnt'].max())
-                     },
-                     'backgroundColor':'#9e2f24',
-                     'color':'white'
-
-                },
-                {
-                     'if':{
-                         'column_id':'funded_amnt',
-
-                         'filter_query':'{{funded_amnt}}={}'.format(dff2['funded_amnt'].max())
-                     },
-                     'backgroundColor':'#9e2f24',
-                     'color':'white'
-
-
-
-
-                },
-{
-                     'if':{
-                         'column_id':'funded_amnt_inv',
-
-                         'filter_query':'{{funded_amnt_inv}}={}'.format(dff2['funded_amnt_inv'].max())
-                     },
-                     'backgroundColor':'#9e2f24',
-                     'color':'white'
-
-
-
-
-                },
-
-
-                ]
-        )])
-
-
-#------------------------Chart1-----
-
-chart1=html.Div([
-
-            dcc.Markdown('''
-    Choose from dropdown to show:
-    '''),
-            dcc.Dropdown(id='linedropdown',
-                options=[
-                         {'label': 'Loan Amount Applied by Borrowers', 'value': 'loan_amnt'},
-                         {'label': 'Amount Funded by Lenders', 'value': 'funded_amnt'},
-                         {'label': 'Total Committed by Investors', 'value': 'funded_amnt_inv'}
-                ],
-                value='loan_amnt',
-                multi=False,
-                clearable=False,
-                style={'background-Color':'#212121',
-                       'color':'#212121'},
-            ),
-            dcc.Graph(id='linechart',style={'backgroundColor':'rgb(26,25,25)','paper_bgcolor':'rgb(26,25,25)'}),
-
-            ])  #className='eight columns'
-
-
-
-
-
-    #############chart2#########
-
-data_table2=html.Div([
-            dcc.Markdown('''
-    __**Historical Loan Data by State**__
-
-    *Select states to generate a distribution histogram(default North Eastern states) *
-    '''),
-        dash_table.DataTable(
-            id='datatable2_id',
-            data=dff3.to_dict('records'),
-            columns=[
-                {"name": i.title(), "id": i, "deletable": False, "selectable": True,
-                 "type": "numeric",
-                 "format": formatted
-                 } for i in dff3.columns
-            ],
-            tooltip={
-        'addr_state': 'Click the box to the left to generate histogram',
-        'loan_amnt': 'Loan Amount Applied by Borrower',
-        'funded_amnt': 'Amount Funded by Lenders',
-        'funded_amnt_inv': 'Total Committed by Investors',
-            },css=[{'selector': '.dash-table-tooltip',
-                  'rule':'background-color: black; font-family:monospace;'}],
-            editable=False,
-            filter_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            row_selectable="multi",
-            row_deletable=False,
-            selected_rows=[],
-            page_action="native",
-            page_current= 0,
-            page_size= 26,
-            #page_action='native',
-            # style_cell={
-            # 'whiteSpace': 'normal'
-            # },
-            #fixed_rows={ 'headers': True},
-            # virtualization=False,
-            style_table={'height':'1000px','overflowY':'auto', 'overflowX': 'auto'},
-            style_cell_conditional=[
-                {'if': {'column_id': 'addr_state'},
-                 'width': '40%', 'textAlign': 'left'},
-                {'if': {'column_id': 'loan_amnt'},
-                 'width': '20%', 'textAlign': 'right'},
-                {'if': {'column_id': 'funded_amnt'},
-                 'width': '20%', 'textAlign': 'right'},
-                {'if': {'column_id': 'funded_amnt_inv'},
-                 'width': '20%', 'textAlign': 'right'},
-            ],style_cell={'padding':'5px',
-                            'backgroundColor':'#313539',
-                          'color':'white'},
-            style_header={'backgroundColor':'#313539',
-                            'fontWeight':'bold'},
-            style_data_conditional=[
-                {
-                    'if':{'row_index':'odd'},
-                    'backgroundColor':'rgb(50,50,50)'
-                },
-                 {
-                     'if':{
-                         'column_id':'loan_amnt',
-
-                         'filter_query':'{{loan_amnt}}={}'.format(dff3['loan_amnt'].max())
-                     },
-                     'backgroundColor':'#2f8694',
-                     'color':'white'
-                },
-                {
-                     'if':{
-                         'column_id':'funded_amnt',
-
-                         'filter_query':'{{funded_amnt}}={}'.format(dff3['funded_amnt'].max())
-                     },
-                     'backgroundColor':'#2f8694',
-                     'color':'white'
-                },
-                {
-                     'if':{
-                         'column_id':'funded_amnt_inv',
-
-                         'filter_query':'{{funded_amnt_inv}}={}'.format(dff3['funded_amnt_inv'].max())
-                     },
-                     'backgroundColor':'#2f8694',
-                     'color':'white'
-                },
-
-                 {
-                     'if':{
-                         'column_id':'loan_amnt',
-
-                         'filter_query':'{{loan_amnt}}={}'.format(dff3['loan_amnt'].min())
-                     },
-                     'backgroundColor':'#924f48',
-                     'color':'white'
-                },
-                {
-                     'if':{
-                         'column_id':'funded_amnt',
-
-                         'filter_query':'{{funded_amnt}}={}'.format(dff3['funded_amnt'].min())
-                     },
-                     'backgroundColor':'#924f48',
-                     'color':'white'
-
-                },
-                {
-                     'if':{
-                         'column_id':'funded_amnt_inv',
-
-                         'filter_query':'{{funded_amnt_inv}}={}'.format(dff3['funded_amnt_inv'].min())
-                     },
-                     'backgroundColor':'#924f48',
-                     'color':'white'
-                },
-            ],
-
-        )])
-
-
-chart2=html.Div([
-            dcc.Markdown('''
-    Choose from dropdown to show:
-    '''),
-            dcc.Dropdown(id='piedropdown',
-                    options=[
-                     {'label': 'Loan Amount Applied by Borrower', 'value': 'loan_amnt'},
-                     {'label': 'Amount Funded by Lender', 'value': 'funded_amnt'},
-                     {'label': 'Total Committed by Investors', 'value': 'funded_amnt_inv'}
-            ],
-            value='funded_amnt',
-            multi=False,
-            clearable=False,
-            placeholder='love being dragged....',
-            style={'background-Color':'#212121',
-                       'color':'#212121'},
-        ),
-            dcc.Graph(id='linechart2'), #state chart
-            dcc.Graph(id='piechart'),   #pie chart
-
+    # Row 1: Region Data and Chart
+    dmc.Grid([
+        # Region Table
+        dmc.GridCol([
+            glass_card([
+                dmc.Text("Regional Overview", fw=600, c="cyan", className="mb-2"),
+                dmc.Text("Select regions to filter the charts.", size="sm", c="gray.5", className="mb-4"),
+                dash_table.DataTable(
+                    id='datatable_id',
+                    data=dff2.to_dict('records'),
+                    columns=[{"name": i.title(), "id": i, "type": "numeric", "format": formatted, "selectable": True} for i in dff2.columns],
+                    editable=False,
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="multi",
+                    row_selectable="multi",
+                    selected_rows=[],
+                    page_action="native",
+                    page_current=0,
+                    page_size=6,
+                    style_as_list_view=True,
+                    style_header=table_header_style,
+                    style_cell=table_cell_style,
+                    style_data_conditional=table_data_conditional,
+                    style_table={'overflowX': 'auto'}
+                )
             ])
+        ], span={"base": 12, "lg": 5}),
 
+        # Region Chart
+        dmc.GridCol([
+            glass_card([
+                dmc.Select(
+                    id='linedropdown',
+                    label="Select Metric",
+                    value='loan_amnt',
+                    data=[
+                         {'label': 'Loan Amount Applied', 'value': 'loan_amnt'},
+                         {'label': 'Amount Funded', 'value': 'funded_amnt'},
+                         {'label': 'Total Committed', 'value': 'funded_amnt_inv'}
+                    ],
+                    className="mb-4 w-64",
+                    leftSection=DashIconify(icon="carbon:chart-line", width=20)
+                ),
+                dcc.Graph(id='linechart', className="rounded-lg overflow-hidden", style={'height': '400px'})
+            ])
+        ], span={"base": 12, "lg": 7}),
+    ], gutter="lg", className="mb-8"),
 
+    # Row 2: State Data & Pie Chart
+    dmc.Grid([
+        # State Table
+        dmc.GridCol([
+            glass_card([
+                dmc.Text("State Statistics", fw=600, c="cyan", className="mb-2"),
+                dmc.Text("Detailed breakdown by state.", size="sm", c="gray.5", className="mb-4"),
+                dash_table.DataTable(
+                    id='datatable2_id',
+                    data=dff3.to_dict('records'),
+                    columns=[{"name": i.title(), "id": i, "type": "numeric", "format": formatted, "selectable": True} for i in dff3.columns],
+                    editable=False,
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="multi",
+                    row_selectable="multi",
+                    selected_rows=[],
+                    page_action="native",
+                    page_current=0,
+                    page_size=10,
+                    style_as_list_view=True,
+                    style_header=table_header_style,
+                    style_cell=table_cell_style,
+                    style_data_conditional=table_data_conditional,
+                    style_table={'overflowX': 'auto', 'height': '400px', 'overflowY': 'auto'}
+                )
+            ])
+        ], span={"base": 12, "lg": 5}),
 
+        # Pie Chart Area
+        dmc.GridCol([
+            glass_card([
+                dmc.Select(
+                    id='piedropdown',
+                    label="Select Metric",
+                    value='funded_amnt',
+                     data=[
+                         {'label': 'Loan Amount Applied', 'value': 'loan_amnt'},
+                         {'label': 'Amount Funded', 'value': 'funded_amnt'},
+                         {'label': 'Total Committed', 'value': 'funded_amnt_inv'}
+                    ],
+                    className="mb-4 w-64",
+                    leftSection=DashIconify(icon="carbon:pie-chart", width=20)
+                ),
+                dmc.Grid([
+                    dmc.GridCol(dcc.Graph(id='piechart', style={'height': '350px'}), span={"base": 12, "md": 6}),
+                    dmc.GridCol(dcc.Graph(id='linechart2', style={'height': '350px'}), span={"base": 12, "md": 6}),
+                ])
+            ])
+        ], span={"base": 12, "lg": 7}),
+    ], gutter="lg", className="mb-8"),
 
+    # Row 3: Map
+    glass_card([
+        dmc.Group([
+             dmc.Text("Geographic Risk Analysis", fw=700, size="xl", c="white"),
+             dmc.Group([
+                 dmc.Text("Select Year:", c="gray.4"),
+                 dmc.NumberInput(id='input_state', value=2014, min=2007, max=2017, step=1, className="w-32"),
+                 dmc.Button("Update Map", id='submit_button', color="cyan", variant="light")
+             ], gap="sm")
+        ], justify="space-between", className="mb-4"),
+        html.Div(id='output_state', className="text-cyan-400 text-sm mb-2"),
+        dcc.Graph(id='map', style={'height': '600px'})
+    ], title=None),
 
+    html.Div(className="h-8"),
 
-  ########### map chart ##########
-
-
-map_chart=dcc.Graph(id='map')
-map_io=html.Div([dcc.Input(id='input_state', type='number', inputMode='numeric', value=2014,
-                        max=2017, min=2007, step=1, required=True),
-                     html.Div(id='output_state'),
-                    html.Button(id='submit_button', n_clicks=0, children='Submit'),
-            ],style={'align':'centered'})
-
-
-    ############### box plot#################
-box_input=html.Div([
-            dcc.Markdown('''
-    **Customized Boxplot**
-    '''),
-        html.P("x-axis:"),
-        dcc.Checklist(
-        id='x-axis',
-        options=[{'value': x, 'label': x}
-                 for x in ['grade','home_ownership','purpose','emp_length']],
-        value=['grade'],
-        labelStyle={'display': 'inline-block'}
-    ),
-        html.P("y-axis:"),
-        dcc.RadioItems(
-        id='y-axis',
-        options=[{'value': x, 'label': x}
-                 for x in ['int_rate', 'annual_inc', 'loan_amnt']],
-        value='int_rate',
-        labelStyle={'display': 'inline-block'}
-    )])
-
-box_plot=dcc.Graph(id="box-plot")
-
-
-layout = html.Div([
-    # 1st row__________________
-    dbc.Row([
-        dbc.Col(html.H2("Lending Club Investor Data Exploration Page"), width={'size': 6, 'offset': 4}),
-    html.Br(),
-    ]),  # col1
-    dbc.Row([
-        html.Br(),
-        dbc.Col(dcc.Markdown("*LendingClub is a platform that people can borrow and lend money with quoted interest rate calculated by LendingClub based borrower's credit profile. Lenders have access to the loan terms, borrower’s credit report, and some other borrower's information. According to Lending Club, the platform can produce an average annulized return rate of 5.14% for the lenders, which is close to the stock market performace and higher in return rate than the U.S. Treasury bond. This page includes visualizations for potential borrowers and lenders who would like to explore the historical statistics of LendingClub for making financial decisions.*"), width={'size': 6, 'offset': 3}),
+    # Row 4: Box Plot
+    glass_card([
+        dmc.Grid([
+            dmc.GridCol([
+                dmc.Stack([
+                    dmc.Text("Feature Correlation", fw=700, size="xl", c="white"),
+                    dmc.Text("Explore relationships between loan attributes.", size="sm", c="gray.4"),
+                    
+                    dmc.Text("X-Axis (Categorical)", fw=600, size="sm", className="mt-4"),
+                    dmc.Select(
+                        id='x-axis',
+                        value='grade',
+                        label="Select Category",
+                        data=[{'value': x, 'label': x.title().replace("_", " ")} for x in ['grade','home_ownership','purpose','emp_length']],
+                        clearable=False
+                    ),
+                
+                    dmc.Text("Y-Axis (Numerical)", fw=600, size="sm", className="mt-4"),
+                    dmc.SegmentedControl(
+                        id='y-axis',
+                        value='int_rate',
+                        data=[
+                            {'label': 'Interest Rate', 'value': 'int_rate'},
+                            {'label': 'Annual Income', 'value': 'annual_inc'},
+                            {'label': 'Loan Amount', 'value': 'loan_amnt'}
+                        ],
+                        fullWidth=True,
+                        color="cyan"
+                    )
+                ])
+            ], span={"base": 12, "md": 3}),
+            
+            dmc.GridCol([
+                dcc.Graph(id="box-plot")
+            ], span={"base": 12, "md": 9})
+        ])
     ]),
-        html.Br(),
+    
+    html.Div(className="h-12")
 
-    # 2nd row___________________data table and dropdown+chart
-        dbc.Row([
-        dbc.Col(data_table1,               # r2c1
-                width={'size': 5, 'offset': 1}),
-        dbc.Col(chart1,                     #r2c2
-                width={'size': 5, 'offset': 0})
-
-    ]),
-    # 3rd row__________________
-    html.Br(),
-    dbc.Row([
-        dbc.Col(data_table2,
-                width={'size': 5, 'offset': 1}),  # r3 col1
-        dbc.Col(chart2,
-                width={'size': 5, 'offset': 0}),  # r3 col2
+], fluid=True, className="py-8")
 
 
-    ],style={'fontcolor':'rgb(255,255,255)'}),
-  # 4th row
-    dbc.Row([
-    dbc.Col(map_chart,width={'size':10,"offset":"-1"}),
-    dbc.Col([html.Br(),html.P('Choose a year:'),map_io],width={'size':1})
-
-
-    ],),
-    #5th row
-    dbc.Row([
-
-        dbc.Col([box_input,html.P('Choose your x,y to explore relationships: few secs to load your x and y inputs...',style={'color':'green'},)],width={'size': 2, 'offset': 1}),
-
-        dbc.Col(box_plot,width={'size':8,"order":"last"}),
-
-    ], justify='around'),
-],style={'color':'rgb(255,255,255)'})
-#__________________________App Call Back- page 1----------##########
+# Callbacks
 
 @app.callback(
     [Output('piechart', 'figure'),
@@ -444,73 +264,74 @@ layout = html.Div([
      Input('datatable2_id', 'selected_rows'),
      Input('piedropdown', 'value'),
      Input('linedropdown', 'value')
-     ],
-    #  prevent_initial_call=True
+     ]
 )
 def update_data(chosen_rows, chosen_rows2, piedropval, linedropval):
-    # Region Chart
+    chosen_rows = chosen_rows or []
+    chosen_rows2 = chosen_rows2 or []
+
+    # Region Chart logic
     if len(chosen_rows) == 0:
-        df_filterd = dff2[dff2['region'].isin(['MidWest', 'NorthEast', 'SouthEast', ' SouthWest', 'West'])]
+        df_filterd = dff2.copy()
     else:
-        #print(chosen_rows)
         df_filterd = dff2[dff2.index.isin(chosen_rows)]
 
-    # State Chart
+    # State Chart logic
     if len(chosen_rows2) == 0:
+        df_filterd2 = dff3.copy()
+        # Default top states for visibility if "State" table is huge?
+        # Preserving original logic: "default North Eastern states" mentioned in markdown but code was:
+        # if len == 0: df_filterd2 = dff3[dff3['addr_state'].isin([...])] in original?
+        # Let's check original logic carefully.
+        # Original: if len==0: df_filterd2 = dff3[dff3['addr_state'].isin(['CT', 'NY', ...])]
         df_filterd2 = dff3[dff3['addr_state'].isin(['CT', 'NY', 'PA', 'NJ', 'RI', 'MA', 'MD', 'VT', 'NH', 'ME'])]
     else:
-        #print(chosen_rows2)
         df_filterd2 = dff3[dff3.index.isin(chosen_rows2)]
 
-    # extract list of chosen regions
     list_chosen_regions = df_filterd['region'].tolist()
-    # filter original df according to chosen regions
-    # because original df has all the complete month data from 2007-2017
     df_line = df2[df2['region'].isin(list_chosen_regions)]
 
-    line_chart = px.histogram(title='Loan Statistics by Region Over Year',
+    line_chart = px.histogram(title='Loan Statistics by Region',
                               data_frame=df_line,
                               x='year',
                               y=linedropval,
                               color='region',
                               histfunc='sum',
-                              labels={'region': 'Regions', 'year': 'year'})
+                              template='plotly_dark')
 
-    # extract list of chosen states
     list_chosen_states = df_filterd2['addr_state'].tolist()
-    # filter original df according to chosen states
-    # because original df has all the complete month data from 2007-2015
     df_line2 = df2[df2['addr_state'].isin(list_chosen_states)]
 
-    line_chart2 = px.histogram(title='Loan Statistics by State Over Year',
+    line_chart2 = px.histogram(title='Loan Statistics by State',
                                data_frame=df_line2,
                                x='year',
                                y=piedropval,
                                color='addr_state',
                                histfunc='sum',
-                               labels={'addr_state': 'States', 'year': 'year'})
+                               template='plotly_dark')
 
-    pie_chart = px.pie(title='Loan Amount Distribution by Region',
+    pie_chart = px.pie(title='Loan Amount Distribution',
                        data_frame=df_filterd,
                        names='region',
                        values=piedropval,
                        hole=.3,
-                       labels={'region': 'Regions'}
+                       template='plotly_dark'
                        )
 
-    # line_chart = px.line(
-    #         data_frame=df_line,
-    #         x='year',
-    #         y=linedropval,
-    #         color='region',
-    #         labels={'region':'Regions', 'year':'year'},
-    #         )
-    line_chart.update_layout(uirevision='foo', title_x=0.5,plot_bgcolor='rgb(39, 43, 48)', paper_bgcolor= 'rgb(39, 43, 48)',font={'color':'white'})
-    line_chart2.update_layout(uirevision='foo', title_x=0.5,plot_bgcolor='rgb(39, 43, 48)',paper_bgcolor= 'rgb(39, 43, 48)',font={'color':'white'})
-    pie_chart.update_layout(uirevision='foo', title_x=0.5,plot_bgcolor='rgb(39, 43, 48)', paper_bgcolor= 'rgb(39, 43, 48)',font={'color':'white'})
+    # Common Layout Updates
+    common_layout = {
+        'plot_bgcolor': 'rgba(0,0,0,0)',
+        'paper_bgcolor': 'rgba(0,0,0,0)',
+        'font': {'color': 'white'},
+        'title_x': 0.5,
+        'margin': dict(t=50, b=40, l=40, r=40)
+    }
+    
+    line_chart.update_layout(uirevision='foo', **common_layout)
+    line_chart2.update_layout(uirevision='foo', **common_layout)
+    pie_chart.update_layout(uirevision='foo', **common_layout)
+    
     return (pie_chart, line_chart, line_chart2)
-
-    ##for map layout update
 
 
 @app.callback(
@@ -520,46 +341,58 @@ def update_data(chosen_rows, chosen_rows2, piedropval, linedropval):
     [
         Input(component_id='submit_button', component_property='n_clicks'),
         State(component_id='input_state', component_property='value')],
-    #  prevent_initial_call=True
 )
 def update_output(num_clicks, val_selected):
     if val_selected is None:
         raise PreventUpdate
-    else:
-        df_map = dff4.query("year=={}".format(val_selected))
-        # print(df[:3])
+    
+    df_map = dff4.query("year=={}".format(val_selected))
 
-        map = px.choropleth(df_map, locations="addr_state",
-                            color="Fully_Paid_percentage",
-                            locationmode='USA-states',
-                            hover_name="addr_state",
-                            hover_data=['Charged_Off', 'Fully_Paid', 'Fully_Paid_percentage'],
-                            # projection='equirectangular',
-                            scope='usa',
-                            title='(Analyzing Risks)\n State Loan Status in ' + str(val_selected),
-                            color_continuous_scale=px.colors.sequential.RdBu)
+    map_chart = px.choropleth(df_map, locations="addr_state",
+                        color="Fully_Paid_percentage",
+                        locationmode='USA-states',
+                        hover_name="addr_state",
+                        hover_data=['Charged_Off', 'Fully_Paid', 'Fully_Paid_percentage'],
+                        scope='usa',
+                        title='State Loan Repayment Rates in ' + str(val_selected),
+                        color_continuous_scale=px.colors.sequential.Teal, # Changed to Teal for better theme fit
+                        template='plotly_dark')
 
-        map.update_layout(title=dict(font=dict(size=28), x=0.5, xanchor='center'),
-                          margin=dict(l=60, r=60, t=50, b=50), height=650,
-                          plot_bgcolor='rgb(39, 43, 48)', paper_bgcolor= 'rgb(39, 43, 48)'
-                          ,font={'color':'white'},geo_bgcolor='rgb(39, 43, 48)')
+    map_chart.update_layout(
+        title=dict(font=dict(size=24), x=0.5, xanchor='center'),
+        margin=dict(l=0, r=0, t=50, b=0),
+        height=600,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font={'color': 'white'},
+        geo=dict(
+            bgcolor='rgba(0,0,0,0)',
+            lakecolor='rgba(0,0,0,0)'
+        )
+    )
 
-        return ('Type in a year in the box to see year {} distribution. Button\
-                clicked {} times'.format(val_selected, num_clicks), map)
+    return (f'Showing distribution for year {val_selected}', map_chart)
 
 
-##########-----update box plots
 @app.callback(
     Output("box-plot", "figure"),
     [Input("x-axis", "value"),
      Input("y-axis", "value")])
 def generate_chart(x, y):
-    pbox = px.box(df2, x=x, y=y, color='loan_status', category_orders={'grade': {'A', 'B', 'C', 'D', 'E', 'F', 'G'}},)
-    pbox.update_layout(plot_bgcolor='rgb(39, 43, 48)', paper_bgcolor= 'rgb(39, 43, 48)',font={'color':'white'})
+    # Ensure x is a list if px.box expects it? No, if x is string it's fine.
+    # Note: original x-axis was Checklist (list). We changed to Select (string).
+    # px.box(x=string) works fine.
+    
+    pbox = px.box(df2, x=x, y=y, color='loan_status', 
+                  category_orders={'grade': ['A', 'B', 'C', 'D', 'E', 'F', 'G']},
+                  template='plotly_dark',
+                  color_discrete_sequence=['#22d3ee', '#f472b6', '#a78bfa']) # Cyan, Pink, Purple
+
+    pbox.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font={'color': 'white'},
+        title=f"Relationship: {x.title()} vs {y}",
+        title_x=0.5
+    )
     return pbox
-
-
-# ------------------------------------------------------------------
-#
-# if __name__ == '__main__':
-#     app.run_server(debug=True,port=1200)#, use_reloader=False

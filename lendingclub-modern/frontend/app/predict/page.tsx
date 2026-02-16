@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, CheckCircle2, XCircle } from "lucide-react"
+import { Loader2, CheckCircle2, XCircle, Sparkles } from "lucide-react"
 import Link from "next/link"
 
 export default function PredictPage() {
@@ -24,14 +24,24 @@ export default function PredictPage() {
     const [result, setResult] = useState<any>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    // Animation steps state
+    const [loadingStep, setLoadingStep] = useState("")
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         setError("")
         setResult(null)
+        setLoadingStep("Validating application details...")
 
         try {
+            // Artificial delay for UX "Analysis" feel
+            await new Promise(r => setTimeout(r, 800))
+            setLoadingStep("Connecting to simple ML model inference...")
+
+            await new Promise(r => setTimeout(r, 800))
+            setLoadingStep("Running LightGBM risk assessment...")
+
             const response = await fetch("http://127.0.0.1:8000/predict", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -45,37 +55,47 @@ export default function PredictPage() {
             if (!response.ok) throw new Error("Prediction failed")
 
             const data = await response.json()
+
+            await new Promise(r => setTimeout(r, 600)) // Final small delay
             setResult(data)
         } catch (err) {
             setError("Failed to get prediction. Please check your backend is running.")
         } finally {
             setLoading(false)
+            setLoadingStep("")
         }
     }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 py-12">
             <div className="container mx-auto px-4 max-w-4xl">
-                <Link href="/" className="text-blue-400 hover:text-blue-300 mb-8 inline-block">
+                <Link href="/" className="text-blue-400 hover:text-blue-300 mb-8 inline-block transition-transform hover:-translate-x-1">
                     ← Back to Home
                 </Link>
 
-                <div className="text-center mb-12">
-                    <Badge variant="outline" className="backdrop-blur-sm bg-white/5 border-white/10 text-white mb-4">
+                <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <Badge variant="outline" className="backdrop-blur-sm bg-white/5 border-white/10 text-emerald-400 mb-4 px-3 py-1">
+                        <Sparkles className="w-3 h-3 mr-2 inline" />
                         Powered by LightGBM
                     </Badge>
-                    <h1 className="text-5xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent mb-4">
+                    <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent mb-4">
                         Get Pre-Approved
                     </h1>
-                    <p className="text-slate-300 text-lg">
-                        Check your loan approval odds instantly. No credit score impact.
+                    <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                        Check your loan approval odds instantly with our advanced AI model.
+                        <br />No credit score impact. Real-time analysis.
                     </p>
                 </div>
 
-                <Card className="backdrop-blur-md bg-white/10 border-white/20 text-white shadow-2xl">
+                <Card className="backdrop-blur-xl bg-white/5 border-white/10 text-white shadow-2xl overflow-hidden relative">
+                    {/* Decorative gradients */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
+
                     <CardHeader>
-                        <CardTitle className="text-2xl">Loan Application</CardTitle>
-                        <CardDescription className="text-slate-300">
+                        <CardTitle className="text-2xl flex items-center gap-2">
+                            Loan Application
+                        </CardTitle>
+                        <CardDescription className="text-slate-400">
                             Fill in your details below to get instant approval odds
                         </CardDescription>
                     </CardHeader>
@@ -183,17 +203,29 @@ export default function PredictPage() {
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-lg py-6"
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-lg py-6 transition-all duration-300 relative overflow-hidden"
                             >
+                                {/* Background shimmer effect during loading */}
+                                {loading && (
+                                    <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] skew-x-12" />
+                                )}
+
                                 {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Analyzing...
-                                    </>
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        <span>Analyzing...</span>
+                                    </div>
                                 ) : (
                                     "Get Approval Odds"
                                 )}
                             </Button>
+
+                            {/* Progress Text Animation */}
+                            {loading && (
+                                <div className="text-center text-sm text-blue-300 animate-pulse mt-2 font-medium">
+                                    {loadingStep}
+                                </div>
+                            )}
                         </form>
 
                         {error && (

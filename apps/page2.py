@@ -1,348 +1,319 @@
-from dash import dcc
-from dash import html
-import dash_bootstrap_components as dbc  #0.11.0
-from dash.dependencies import Input, Output, State
-import pandas as pd  # pandas 1.1.0 doesn't cause problem
+from dash import dcc, html, Input, Output, State, callback, no_update
+import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
+from dash_iconify import DashIconify
+import pandas as pd
 import pathlib
 from app import app
 import joblib
-#import sklearn
 from sklearn.preprocessing import LabelEncoder
 
-#from sklearn.externals import joblib
-#get relative data folder
+# get relative data folder
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath("../datasets").resolve()
-MODEL_PATH =PATH.joinpath("../models").resolve()
-#
-df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"),low_memory=True)
-#df2 = pd.read_excel(DATA_PATH.joinpath("lc_cleaned_combined.xlsx"))
-#print(df2)
+MODEL_PATH = PATH.joinpath("../models").resolve()
 
+df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"), low_memory=True)
 
-#lr_model = joblib.load(MODEL_PATH.joinpath('Final logistic classification-heroku_version.pkl'))
-#lr_model = load_model(MODEL_PATH.joinpath('Final Logistic Classification Model'))
-
-
-#rf_model = joblib.load(MODEL_PATH.joinpath('Final random forest-heroku_version.pkl'))
-#rf_model = load_model(MODEL_PATH.joinpath('Final random forest Model'))
-
-# app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
-
-# app = dash.Dash(__name__) this will read from /assets
-
-
-approval_str = ['opppps...something is missing from the info-happy hoiday!']
-print(approval_str)
-########################## 1st card#########################
-card_dropdown = html.Div(
-    [
-        html.Img(src='/assets/LC-Logo.png', className="card-img-top", title="LC-Logo", alt='Learn Dash Bootstrap Card Component'),
-        html.Div(
-            [
-                html.H4(["Predict Your Loan Approval Rate",
-                         dbc.Badge('Powered by Random Forest and Logistic Regression', className='ml-1',
-                                   color='success', pill=True,
-                                   href='https://arxiv.org/ftp/arxiv/papers/0804/0804.0650.pdf', id='rf-lr-badge')]),
-                # className="card-title"),
-                html.H6("Choose from below:", className="card-subtitle"),
-                html.Br(),
-                html.H3(
-                    "Term of loan you are applying :",  # 1-q-1
-                    className="card-text1",
+def create_info_card(image_src, title, description, link, color="pink"):
+    """Create a glassmorphic info card with vibrant accents"""
+    return dmc.Card(
+        children=[
+            dmc.CardSection(
+                dmc.Image(
+                    src=image_src,
+                    h=180,
+                    fit="cover"
                 ),
-                dcc.Dropdown(
-                    id='term',
-                    options=[{'label': i, 'value': i} for i in [' 36 months', ' 60 months']],
-                    value=' 36 months',
-                    className="text-dark"
-                ),
-                html.Br(),
-                html.H3(
-                    "Employment Length :",  # 1-q-2
-                    className="card-text1",
-                ),
-                dcc.Dropdown(
-                    id='emp_length',
-                    options=[{'label': i, 'value': i} for i in
-                             ['< 1 year', '1 year', '2 years', '3 years', '4 years', '5 years', '6 years', '7 years',
-                              '8 years', '9 years', '10+ years']],
-                    value='< 1 year',
-                    className="text-dark"
-                ),
-                html.Br(),
-                html.H3(
-                    "Credit Grade :",  # 1-q-3
-                    className="card-text1",
-                ),
-                dcc.Dropdown(
-                    id='grade',
-                    options=[{'label': i, 'value': i} for i in ['A', 'B', 'C', 'D', 'E', 'F', 'G']],
-                    value='A',
-                    className="text-dark"
-                ),
-                html.Br(),
-                html.H3(
-                    "Home Ownership :",  # 1-q-4
-                    className="card-text1",
-                ),
-                dcc.Dropdown(
-                    id='home_ownership',
-                    options=[{'label': i, 'value': i} for i in ['RENT', 'OWN', 'MORTGAGE', 'OTHER']],
-                    value='RENT',
-                    className="text-dark"
-                ),
-                html.Br(),
-                html.H3(
-                    "Purpose of the loan ?",  # 1-q-5
-                    className="card-text1",
-                ),
-                dcc.Dropdown(
-                    id='purpose',
-                    options=[{'label': i, 'value': i} for i in
-                             ['debt_consolidation', 'credit_card', 'home_improvement', 'other', 'major_purchase',
-                              'medical', 'small_business', 'car', 'vacation', 'moving', 'house', 'wedding',
-                              'renewable_energy', 'educational']],
-                    value='debt_consolidation',
-                    className="text-dark"
-                ),
-                html.Br(),
-            ],
-            className="card-body"
-        )
-    ],
-    className="card bg-primary text-white"
-)
-############################### Annual income policy alert component #####################
-alert = html.Div(
-    [
-        dbc.Button("Why are we asking your income?", id="alert-toggle-auto", className="me-1 mb-2", color="info"),
-        html.Hr(),
-        dbc.Alert(
-            "Precise ML predictions rely on quality data! However, your income info is never stored!",
-            id="alert-auto",
-            is_open=True,
-            duration=10000,
-        ),
-    ]
-)
-
-alert2 = html.Div(
-    [
-        dbc.Button("We don't collect your data.", id="alert-toggle-auto2", className="me-1 mb-2", color="info"),
-        html.Hr(),
-        dbc.Alert(
-            "ML model predictions on your loan are pretrained and your loan info is never stored!",
-            id="alert-auto2",
-            is_open=True,
-            duration=30000,
-        ),
-    ]
-)
-###########################prediction result modal############
-modal = html.Div(
-    [
-        dbc.Button("Get Pre-approved !", id="Get Pre-approved", color='primary', className="w-100"),
-        dbc.Modal(
-            [
-                dbc.ModalHeader(dbc.ModalTitle("Your Approval Odds")),
-                dbc.ModalBody(str(approval_str[0]), id='modal_result'),
-                dbc.ModalFooter(
-                    dbc.Button("Close", id="close-centered", className="ms-auto", n_clicks=0)
-                ),
-            ],
-            id="modal-centered",
-            is_open=False,
-        ),
-    ]
-)
-print(modal)
-######################### 2nd card ##########################
-
-card_form = dbc.Card(
-    [
-        dbc.CardImg(src='/assets/ap.png', top=True, title="Approval Prediction", alt='Approval Prediction'),
-        dbc.CardBody(
-            [
-                html.H4(["Get pre-approved and it doesn't hurt your credit score",
-                         dbc.Badge("We don't check your credit score unlike other platforms", className='ms-1',
-                                   color='warning', pill=True,
-                                   href='https://www.consumer.ftc.gov/articles/0151-disputing-errors-credit-reports',
-                                   id='rf-lr-badge2')]),
-                html.H6("Choose from below:", className="card-subtitle"),
-                html.Br(),
-                html.H3(
-                    "What's your annual income :",  # 2-q-1
-                    className="card2-text1",
-                ),
-                alert,
-                dcc.Input(id='annual_inc', type='number', min=1000, max=10000000, step=1, 
-                          placeholder='type in your annual income ', className="form-control"),
-                html.Br(),
-                html.H3(
-                    "Amount of loan you are applying :",  # 2-q-2
-                    className="card2-text1",
-                ),
-                alert2,
-                dcc.Input(id='loan_amnt', type='number', min=0, max=40000, step=1, 
-                          placeholder='from $1000 up to $40,000', className="form-control"),
-                html.Br(),
-                modal,
-                html.Div(id='result_rf'),
-                html.Div(id='result_lr'),
-            ]
-        )
-    ],
-    color="dark",
-    inverse=False, # Using className for text color
-    className="text-white"
-)
-##################################3rd card#######################
-
-
-card_content_2 = dbc.CardBody(
-    [
-        html.Blockquote(
-            [
-                html.P(
-                    "A learning experience is one of those things that says, "
-                    "'You know that thing you just did? Don't do that.'"
-                ),
-                html.Footer(
-                    html.Small("Douglas Adams", className="text-muted")
-                ),
-            ],
-            className="blockquote",
-        )
-    ]
-)
-
-#################################cards remaining on row 3################
-
-
-card_content_6 = [
-    dbc.CardImg(src="/assets/control_spending.jpg", top=True),
-    dbc.CardBody(
-        [
-            html.H5("Contro Your Spending", className="card-title"),
-            html.P(
-                "Shop smarter and cut spending to take control of your finances and better manage your bills.",
-                className="card-text",
+                className="relative overflow-hidden"
             ),
-            dbc.CardLink("How to Control Spending",
-                         href='https://www.smartaboutmoney.org/Topics/Spending-and-Borrowing/Control-Spending'),
-        ]
-    ),
-]
-
-card_content_7 = [
-    dbc.CardImg(src="/assets/debt.jpg", top=True),
-    dbc.CardBody(
-        [
-            html.H5("Deal with Debt", className="card-title"),
-            html.P(
-                "Learn smart ways to pay off debt and spot debt payment scams to repair credit or build good credit as you increase your credit score.",
-                className="card-text",
-            ),
-            dbc.CardLink("How to Deal with Debt",
-                         href='https://www.smartaboutmoney.org/Topics/Spending-and-Borrowing/Deal-With-Debt'),
-        ]
-    ),
-]
-
-card_content_8 = [
-    dbc.CardImg(src="/assets/Know-Your-Borrowing-Options.jpg", top=True),
-    dbc.CardBody(
-        [
-            html.H5("Borrowing Options", className="card-title"),
-            html.P(
-                "Where can you get money to buy a house, buy a car or start a business? SAM's tips for how to qualify for a loan, including how your credit score affects your interest rates and common dangers of borrowing.",
-                className="card-text",
-            ),
-            dbc.CardLink("Know Your Borrowing Options",
-                         href='https://www.smartaboutmoney.org/Topics/Spending-and-Borrowing/Know-Borrowing-Options'),
-        ]
-    ),
-]
-
-cards = dbc.Row(
-    [
-        dbc.Col(dbc.Card(card_content_6, color="danger"), width=4),
-        dbc.Col(dbc.Card(card_content_7, color="light"), width=4),
-        dbc.Col(dbc.Card(card_content_8, color="dark"), width=4),
-    ]
-)
+            dmc.Stack([
+                dmc.Text(title, fw=700, size="lg", c="white", className="mt-2"),
+                dmc.Text(
+                    description,
+                    size="sm",
+                    c="gray.4",
+                    className="mb-3"
+                ),
+                dmc.Anchor(
+                    dmc.Group([
+                        dmc.Text("Learn more", size="sm", c=color),
+                        DashIconify(icon="carbon:arrow-right", color=color, width=16)
+                    ], gap="xs"),
+                    href=link,
+                    target="_blank",
+                    className="no-underline"
+                )
+            ], gap="xs", p="md")
+        ],
+        withBorder=False,
+        shadow="xl",
+        radius="lg",
+        className=f"backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/15 hover:shadow-2xl hover:scale-105 transition-all duration-300"
+    )
 
 layout = html.Div([
-    # 1st row__________________
-    dbc.Row([
-        dbc.Col(html.H2("Lender Prediction Page",style={'color':'rgb(255,255,255)'}), width={'size': 6, 'offset': 5}),
-    ]),  # col1
+    dmc.Container([
+        # Header Section with gradient text
+        dmc.Stack([
+            html.Div([
+                dmc.Title(
+                    "Loan Approval Prediction",
+                    order=1,
+                    ta="center",
+                    className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 text-4xl md:text-5xl font-bold mb-2"
+                ),
+                dmc.Text(
+                    "Powered by AI & Machine Learning",
+                    ta="center",
+                    size="sm",
+                    c="gray.4",
+                    className="mb-2"
+                ),
+                dmc.Group([
+                    dmc.Badge("Random Forest", color="cyan", variant="dot", size="lg"),
+                    dmc.Badge("Logistic Regression", color="violet", variant="dot", size="lg"),
+                ], justify="center", className="mb-4")
+            ]),
+            
+            dmc.Text(
+                "LendingClub enables borrowers to create unsecured personal loans between $1,000 and $40,000. Get instant predictions on your approval odds.",
+                ta="center",
+                c="gray.3",
+                size="md",
+                className="max-w-3xl mx-auto mb-8"
+            ),
+        ], gap="xs", className="mb-10"),
 
-    # 2nd row___________________
-    dbc.Row([
-        dbc.Col(dcc.Markdown(
-            "_LendingClub enable borrowers to create unsecured personal loans between $1,000 and $40,000. The standard loan period is three years. Investors are able to search and browse the loan listings on LendingClub website and select loans that they want to invest in based on the information supplied about the borrower, amount of loan, loan grade, and loan purpose. Investors make money from the interest on these loans. LendingClub made money by charging borrowers an origination fee and investors a service fee._"),
-                width={'size': 8, 'offset': 2},style={'color':'rgb(255,255,255)'}),
-    ]),
+        # Main Form Area with glassmorphism
+        dmc.Grid([
+            # Left Column: Basic Info
+            dmc.GridCol([
+                dmc.Card([
+                    # Logo section
+                    dmc.CardSection(
+                        html.Div(
+                            html.Img(src='/assets/LC-Logo.png', className="h-14 object-contain mx-auto"),
+                            className="p-6 bg-gradient-to-br from-white/10 to-white/5"
+                        )
+                    ),
+                    
+                    dmc.Stack([
+                        dmc.Group([
+                            DashIconify(icon="carbon:data-base", color="cyan", width=24),
+                            dmc.Text("Loan Details", fw=700, size="xl", c="white"),
+                        ], gap="sm"),
+                        
+                        dmc.Divider(color="gray.7", className="my-2"),
+                        
+                        dmc.Select(
+                            id='term',
+                            label="Loan Term",
+                            description="Select your preferred repayment period",
+                            data=[{'label': i, 'value': i} for i in [' 36 months', ' 60 months']],
+                            value=' 36 months',
+                            leftSection=DashIconify(icon="carbon:calendar", width=20),
+                            className="w-full"
+                        ),
+                        
+                        dmc.Select(
+                            id='emp_length',
+                            label="Employment Length",
+                            description="How long have you been employed?",
+                            data=[{'label': i, 'value': i} for i in ['< 1 year', '1 year', '2 years', '3 years', '4 years', '5 years', '6 years', '7 years', '8 years', '9 years', '10+ years']],
+                            value='< 1 year',
+                            leftSection=DashIconify(icon="carbon:badge", width=20),
+                            className="w-full"
+                        ),
+                        
+                        dmc.Select(
+                            id='grade',
+                            label="Credit Grade",
+                            description="Your credit score category",
+                            data=[{'label': i, 'value': i} for i in ['A', 'B', 'C', 'D', 'E', 'F', 'G']],
+                            value='A',
+                            leftSection=DashIconify(icon="carbon:star", width=20),
+                            className="w-full"
+                        ),
+                        
+                        dmc.Select(
+                            id='home_ownership',
+                            label="Home Ownership",
+                            description="Current housing situation",
+                            data=[{'label': i, 'value': i} for i in ['RENT', 'OWN', 'MORTGAGE', 'OTHER']],
+                            value='RENT',
+                            leftSection=DashIconify(icon="carbon:home", width=20),
+                            className="w-full"
+                        ),
+                        
+                        dmc.Select(
+                            id='purpose',
+                            label="Loan Purpose",
+                            description="What will you use this loan for?",
+                            data=[{'label': i.replace('_', ' ').title(), 'value': i} for i in ['debt_consolidation', 'credit_card', 'home_improvement', 'other', 'major_purchase', 'medical', 'small_business', 'car', 'vacation', 'moving', 'house', 'wedding', 'renewable_energy', 'educational']],
+                            value='debt_consolidation',
+                            leftSection=DashIconify(icon="carbon:wallet", width=20),
+                            className="w-full"
+                        ),
+                    ], gap="lg", p="xl")
+                ], shadow="xl", radius="xl", withBorder=False, 
+                   className="backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300")
+            ], span={"base": 12, "md": 6}),
 
-    # 3rd row__________________
-    html.Br(),
-    dbc.Row([
-        dbc.Col(card_dropdown, width={'size': 5, 'offset': 1}),
-        dbc.Col(card_form, width=5)
-    ]),
-    html.Br(),
+            # Right Column: Financial Info & Action
+            dmc.GridCol([
+                dmc.Card([
+                    dmc.CardSection(
+                        html.Div(
+                            dmc.Image(src='/assets/ap.png', h=220, fit="cover"),
+                            className="relative overflow-hidden"
+                        )
+                    ),
+                    
+                    dmc.Stack([
+                        dmc.Group([
+                            DashIconify(icon="carbon:currency-dollar", color="green", width=24),
+                            dmc.Text("Financial Information", fw=700, size="xl", c="white"),
+                        ], gap="sm"),
+                        
+                        dmc.Divider(color="gray.7", className="my-2"),
+                        
+                        dmc.Alert(
+                            children=[
+                                dmc.Text("Your data is never stored", fw=500, size="sm")
+                            ],
+                            title="Privacy First",
+                            color="blue",
+                            variant="light",
+                            icon=DashIconify(icon="carbon:security", width=20),
+                            className="bg-blue-500/10 border border-blue-500/30"
+                        ),
 
-    # 4th row__________________
-    dbc.Row([
-        dbc.Col(cards, width={'size': 10, 'offset': 1})
-    ]),
+                        dmc.NumberInput(
+                            id='annual_inc',
+                            label="Annual Income",
+                            description="Your total yearly income in USD",
+                            min=1000, max=10000000, step=1000,
+                            placeholder="e.g., 50000",
+                            leftSection=DashIconify(icon="carbon:money", width=20),
+                            className="w-full",
+                            thousandSeparator=","
+                        ),
+
+                        dmc.NumberInput(
+                            id='loan_amnt',
+                            label="Requested Loan Amount",
+                            description="Between $1,000 and $40,000",
+                            min=1000, max=40000, step=500,
+                            placeholder="e.g., 15000",
+                            leftSection=DashIconify(icon="carbon:currency-dollar", width=20),
+                            className="w-full",
+                            thousandSeparator=","
+                        ),
+
+                        dmc.Button(
+                            [
+                                dmc.Group([
+                                    DashIconify(icon="carbon:machine-learning-model", width=20),
+                                    dmc.Text("Get AI Prediction", size="md", fw=600)
+                                ], gap="xs")
+                            ],
+                            id="Get Pre-approved",
+                            color="cyan",
+                            gradient={"from": "cyan", "to": "purple", "deg": 45},
+                            variant="gradient",
+                            fullWidth=True,
+                            size="lg",
+                            className="mt-4 shadow-lg shadow-cyan-500/50 hover:shadow-cyan-500/70 hover:scale-105 transition-all duration-300"
+                        )
+                    ], gap="lg", p="xl")
+                ], shadow="xl", radius="xl", withBorder=False,
+                   className="backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300")
+            ], span={"base": 12, "md": 6}),
+        ], gutter="xl", className="mb-12"),
+
+        # Bottom Info Cards
+        dmc.Title("Financial Resources", order=2, ta="center", c="white", className="mb-6"),
+        dmc.SimpleGrid(
+            cols=3,
+            spacing="lg",
+            children=[
+                create_info_card(
+                    "/assets/control_spending.jpg",
+                    "Control Spending",
+                    "Shop smarter and manage your finances effectively with proven strategies.",
+                    "https://www.smartaboutmoney.org/Topics/Spending-and-Borrowing/Control-Spending",
+                    "pink"
+                ),
+                create_info_card(
+                    "/assets/debt.jpg",
+                    "Manage Debt",
+                    "Smart ways to pay off debt and improve your credit score.",
+                    "https://www.smartaboutmoney.org/Topics/Spending-and-Borrowing/Deal-With-Debt",
+                    "violet"
+                ),
+                create_info_card(
+                    "/assets/Know-Your-Borrowing-Options.jpg",
+                    "Borrowing Options",
+                    "Understand your options and qualify for better loan terms.",
+                    "https://www.smartaboutmoney.org/Topics/Spending-and-Borrowing/Know-Borrowing-Options",
+                    "cyan"
+                )
+            ],
+            className="mb-12"
+        ),
+
+        # Footer Quote
+        dmc.Card([
+            dmc.Blockquote(
+                children=[
+                    html.P("A learning experience is one of those things that says, 'You know that thing you just did? Don't do that.'"),
+                    html.Footer([
+                        html.Small("— Douglas Adams", className="text-gray-400 italic")
+                    ])
+                ],
+                className="text-gray-300 border-l-4 border-purple-500"
+            )
+        ], withBorder=False, className="backdrop-blur-md bg-white/5 border border-white/10 p-6", radius="lg"),
+        
+    ], fluid=True, className="py-12 px-4"),
     
-    # 5th row__________________
-    dbc.Row([
-        dbc.Col(card_content_2, width={'size': 10, 'offset': 1}, style={'color':'rgb(255,255,255)'}),
-    ]),
+    # Modal
+    dmc.Modal(
+        id="modal-centered",
+        title=dmc.Group([
+            DashIconify(icon="carbon:checkmark-filled", color="green", width=24),
+            dmc.Text("Your Approval Prediction", fw=700, size="lg")
+        ], gap="sm"),
+        children=[
+            dmc.Stack([
+                dmc.Text(id='modal_result', size="lg", fw=500, ta="center", className="p-6 text-white"),
+                dmc.Text("This prediction is for informational purposes only.", size="xs", c="dimmed", ta="center")
+            ], gap="md")
+        ],
+        centered=True,
+        opened=False,
+        size="lg",
+        zIndex=10000,
+        className="backdrop-blur-md"
+    )
 ])
 
+# Callbacks
 
-##########################################Alert call back######################
+# Modal Toggle
 @app.callback(
-    Output("alert-auto", "is_open"),
-    [Input("alert-toggle-auto", "n_clicks")],
-    [State("alert-auto", "is_open")],
+    Output("modal-centered", "opened"),
+    [Input("Get Pre-approved", "n_clicks")],
+    [State("modal-centered", "opened")],
+    prevent_initial_call=True
 )
-def toggle_alert(n, is_open):
+def toggle_modal(n, opened):
     if n:
-        return not is_open
-    return is_open
+        return not opened
+    return opened
 
-
-@app.callback(
-    Output("alert-auto2", "is_open"),
-    [Input("alert-toggle-auto2", "n_clicks")],
-    [State("alert-auto2", "is_open")],
-)
-def toggle_alert2(n, is_open):
-    if n:
-        return not is_open
-    return is_open
-
-
-######################################Prediction Modal call back###################
-@app.callback(
-    Output("modal-centered", "is_open"),
-    [Input("Get Pre-approved", "n_clicks"), Input("close-centered", "n_clicks")],
-    [State("modal-centered", "is_open")],
-)
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
-
-
-##########################################Prediction call back######################
-
+# Prediction Logic
 @app.callback(
     Output(component_id='modal_result', component_property='children'),
     [Input(component_id='term', component_property='value'),
@@ -350,9 +321,10 @@ def toggle_modal(n1, n2, is_open):
      Input(component_id='grade', component_property='value'),
      Input(component_id='home_ownership', component_property='value'),
      Input(component_id='annual_inc', component_property='value'),
-     Input(component_id='purpose', component_property='value')])
-def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
-    if all([term, loan_amnt, grade, home_ownership, annual_inc, purpose]):
+     Input(component_id='purpose', component_property='value'),
+     Input(component_id='emp_length', component_property='value')])
+def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose, emp_length):
+    if all([term, loan_amnt is not None, grade, home_ownership, annual_inc is not None, purpose, emp_length]):
         try:
             # Load models and encoders
             lr_model = joblib.load(MODEL_PATH.joinpath('sklearn_lr.joblib'))
@@ -364,51 +336,19 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
                 'loan_amnt': loan_amnt,
                 'term': term,
                 'grade': grade,
-                'emp_length': '2 years', # Defaulting as it's not passed correctly in original code args, wait, check args
+                'emp_length': emp_length,
                 'home_ownership': home_ownership,
                 'annual_inc': annual_inc,
                 'purpose': purpose
             }])
             
-            # Note: The original function signature didn't include emp_length, but the model needs it.
-            # The original code had:
-            # dcc.Dropdown(id='emp_length', ...)
-            # But the callback input list:
-            # [Input(component_id='term', ...), ..., Input(component_id='purpose', ...)]
-            # It seems emp_length was MISSING from the callback arguments in the original code!
-            # Let's check the callback decorator.
-            
             # Transform features using saved encoders
-            for col in ['term', 'grade', 'home_ownership', 'purpose']:
+            for col in ['term', 'grade', 'home_ownership', 'purpose', 'emp_length']:
                 le = encoders[col]
-                # Handle unseen labels gracefully (though dropdowns should match training data)
                 try:
                     user_df[col] = le.transform(user_df[col].astype(str))
                 except ValueError:
-                    # Fallback or error
-                    return ['Error: Invalid input value for ' + col]
-
-            # emp_length is tricky if it's missing from args. 
-            # Let's assume for now we need to fix the callback signature too if it's missing.
-            # But for this replacement, let's stick to what we have.
-            # Wait, looking at the original code, emp_length WAS in the dropdowns but NOT in the callback args?
-            # Line 351: def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
-            # It is missing emp_length!
-            # And in the original code line 363: user_df = ... 'emp_length' ...
-            # But it wasn't passed! 
-            # Actually, looking at line 365, it appends a dict. 'emp_length' is NOT in that dict.
-            # So 'emp_length' would be NaN.
-            # And then line 383 loops over 'emp_length'.
-            # This confirms the original code was VERY broken.
-            
-            # To fix this properly, I need to add emp_length to the callback.
-            # But first, let's just get the logic right for what we have.
-            # I will hardcode emp_length to '2 years' (encoded) for now to prevent crash, 
-            # or better, I should update the callback signature in a separate step.
-            
-            # For now, let's use the encoder for emp_length on a default value
-            le_emp = encoders['emp_length']
-            user_df['emp_length'] = le_emp.transform(['2 years']) # Default
+                    return f'Error: Invalid input value for {col}'
 
             # Ensure column order matches training
             user_df = user_df[['loan_amnt', 'term', 'grade', 'emp_length', 'home_ownership', 'annual_inc', 'purpose']]
@@ -418,41 +358,27 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose):
 
             prob = (prob_lr + prob_rf*3) / 4
             
+            # Create visually appealing result message
+            percentage = f"{prob:.1%}"
+            emoji = "🎉" if prob > 0.7 else "✅" if prob > 0.5 else "⚠️"
+            
             if loan_amnt < 1000 or loan_amnt > 40000:
-                approval_str = [
-                    "Although Lending Club only offer loans between $1000 and $40000, according to our ML prediction, you might have {:.2%} chance of getting a loan amount of $ {} from Lending Club".format(
-                        prob, loan_amnt)
-                ]
+                return html.Div([
+                    dmc.Text(f"{emoji} {percentage}", size="3rem", fw=700, ta="center", className="mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400"),
+                    dmc.Text(f"Approval Probability", size="sm", c="dimmed", ta="center", className="mb-2"),
+                    dmc.Divider(className="my-4"),
+                    dmc.Text(f"Although LendingClub typically offers loans between $1,000 and $40,000, based on your information, you have a {percentage} chance of approval for ${loan_amnt:,}.", ta="center")
+                ])
             else:
-                approval_str = [
-                    'With the above information, you have {:.2%} chance of getting a loan amount of $ {} from Lending Club'.format(
-                        prob, loan_amnt)
-                ]
-            return approval_str
+                return html.Div([
+                    dmc.Text(f"{emoji} {percentage}", size="3rem", fw=700, ta="center", className="mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400"),
+                    dmc.Text(f"Approval Probability", size="sm", c="dimmed", ta="center", className="mb-2"),
+                    dmc.Divider(className="my-4"),
+                    dmc.Text(f"Based on your information, you have a {percentage} chance of getting approved for a ${loan_amnt:,} loan from LendingClub.", ta="center")
+                ])
+
         except Exception as e:
             print(f"Prediction Error: {e}")
-            return ['Unable to give you a prediction: ' + str(e)]
+            return dmc.Alert(f'Unable to generate prediction: {str(e)}', title="Error", color="red")
     else:
-        return ['opppps...something is missing from the info:) Happy Holiday!']
-
-
-# if __name__ == '__main__':
-#     app.run_server(debug=True, use_reloader=False)
-#     # lr_model = load_model(os.getcwd() + '\models\Final Logistic Classification Model')
-#     # rf_model = load_model(os.getcwd() + '\models\Final random forest Model')
-#     #app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
-#     lr_model = load_model(MODEL_PATH.joinpath('\models\Final Logistic Classification Model'))
-#     # if lr_model:
-#     #     print('model loaded')
-#     rf_model = load_model(MODEL_PATH.joinpath('\models\Final random forest Model'))
-
-
-
-
-
-
-
-
-
-
-
+        return dmc.Text('Please fill in all fields to get your prediction.', c="yellow", ta="center")
