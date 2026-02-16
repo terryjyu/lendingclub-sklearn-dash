@@ -13,6 +13,7 @@ import {
     PieChart as PieChartIcon,
     ArrowLeft
 } from "lucide-react"
+import { getApiUrl } from "@/lib/api"
 
 import {
     AreaChart,
@@ -44,8 +45,8 @@ export default function ExplorePage() {
         async function fetchData() {
             try {
                 const [regionRes, stateRes] = await Promise.all([
-                    fetch("http://127.0.0.1:8000/stats/region"),
-                    fetch("http://127.0.0.1:8000/stats/state")
+                    fetch(getApiUrl("/stats/region")),
+                    fetch(getApiUrl("/stats/state"))
                 ])
 
                 const rData = await regionRes.json()
@@ -212,7 +213,7 @@ export default function ExplorePage() {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
-                                        formatter={(value: number) => [`$${(value / 1000000).toFixed(1)}M`, 'Volume']}
+                                        formatter={(value?: number) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
                                     />
                                     <Legend />
                                     <Area type="monotone" dataKey="West" stackId="1" stroke="#8884d8" fill="url(#colorWest)" />
@@ -246,7 +247,7 @@ export default function ExplorePage() {
                                         <Tooltip
                                             cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                             contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
-                                            formatter={(value: number) => [`$${(value / 1000000).toFixed(1)}M`, 'Volume']}
+                                            formatter={(value?: number) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
                                         />
                                         <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                                     </BarChart>
@@ -283,7 +284,7 @@ export default function ExplorePage() {
                                         </Pie>
                                         <Tooltip
                                             contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
-                                            formatter={(value: number) => [`$${(value / 1000000).toFixed(1)}M`, 'Volume']}
+                                            formatter={(value?: number) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
                                         />
                                         <Legend />
                                     </PieChart>

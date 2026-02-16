@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Loader2, CheckCircle2, XCircle, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { getApiUrl } from "@/lib/api"
 
 export default function PredictPage() {
     const [formData, setFormData] = useState({
@@ -40,9 +41,11 @@ export default function PredictPage() {
             setLoadingStep("Connecting to simple ML model inference...")
 
             await new Promise(r => setTimeout(r, 800))
+            await new Promise(r => setTimeout(r, 800))
             setLoadingStep("Running LightGBM risk assessment...")
-
-            const response = await fetch("http://127.0.0.1:8000/predict", {
+            // ...
+            // Inside component
+            const response = await fetch(getApiUrl("/predict"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
