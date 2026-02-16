@@ -213,7 +213,7 @@ export default function ExplorePage() {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
-                                        formatter={(value?: number) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
+                                        formatter={(value: any) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
                                     />
                                     <Legend />
                                     <Area type="monotone" dataKey="West" stackId="1" stroke="#8884d8" fill="url(#colorWest)" />
@@ -247,7 +247,7 @@ export default function ExplorePage() {
                                         <Tooltip
                                             cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                             contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
-                                            formatter={(value?: number) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
+                                            formatter={(value: any) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
                                         />
                                         <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                                     </BarChart>
@@ -284,7 +284,7 @@ export default function ExplorePage() {
                                         </Pie>
                                         <Tooltip
                                             contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }}
-                                            formatter={(value?: number) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
+                                            formatter={(value: any) => [`$${((value || 0) / 1000000).toFixed(1)}M`, 'Volume']}
                                         />
                                         <Legend />
                                     </PieChart>
