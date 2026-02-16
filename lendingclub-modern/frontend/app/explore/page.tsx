@@ -52,8 +52,11 @@ export default function ExplorePage() {
                 const rData = await regionRes.json()
                 const sData = await stateRes.json()
 
-                setRegionData(rData)
-                setStateData(sData)
+                if (Array.isArray(rData)) setRegionData(rData)
+                else console.error("Region data is not an array:", rData)
+
+                if (Array.isArray(sData)) setStateData(sData)
+                else console.error("State data is not an array:", sData)
             } catch (err) {
                 console.error("Failed to fetch stats", err)
             } finally {
