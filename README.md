@@ -1,35 +1,64 @@
-# lendingclub-sklearn-dash
-This is a cool project for utilizing Dash and Plotly as an interactive tool for data exploration and an alternative tool to give loan approval odds prediction of Lending Club.
+# LendingClub Analytics & Prediction
 
-This app was originally uploaded to Heroku. And it was a bad idea to use Heroku for this app. PythonAnywhere has much faster servers!
+A comprehensive tool for exploring LendingClub historical data and predicting loan approval odds using state-of-the-art Machine Learning.
 
-Link to the Heroku app is: https://lendingdash.herokuapp.com/ (12/20/2020: this server has been downgraded and will have performance issues so if you are having issues accessing, use PythonAnywhere server below)
+## 🚀 Projects Overview
 
+This repository now contains two versions of the application:
+1.  **Modern Full-Stack Version**: A Next.js + FastAPI application with LightGBM.
+2.  **Legacy Dash Version**: The original Dash/Plotly application with recent visual polish.
 
-However, when uploaded to PythonAnywhere, it actually has much much better performanace without the need to upgrade to a very expensive server option.
-Link to the app on PythonAnywhere: http://terryjyu.pythonanywhere.com (will renmae the app name soon...)
+---
 
-This app consists of two pages:
+## ✨ Modern Version (2024 Rewrite)
 
-Investor EDA Page: https://lendingdash.herokuapp.com/apps/page1
+The modern version is a full-stack rewrite designed for high performance and premium UI/UX.
 
-Prediction Page: https://lendingdash.herokuapp.com/apps/page2
+### Architecture
+- **Backend**: FastAPI, Poetry, LightGBM (80.25% accuracy)
+- **Frontend**: Next.js 16, TypeScript, Tailwind CSS v4, Shadcn/UI
+- **Features**: 
+  - **Market Insights**: Interactive Recharts dashboard for 2007-2017 loan data.
+  - **AI Pre-Approval**: Real-time logic-aware risk assessment.
+  - **Premium UI**: Glassmorphism, animated transitions, and responsive design.
 
-The original dataset comes from Kaggle https://www.kaggle.com/husainsb/lendingclub-issued-loans and has 690.95 MB data(train+test) from 2007 to 2017.
-Dataset has been cleaned in Jupyter notebook and columns have been dropped based on feature selection done in pycaret.
+### Running the Modern Version
+1. **Start Backend**:
+   ```bash
+   cd lendingclub-modern/backend
+   poetry run uvicorn main:app --reload --port 8000
+   ```
+2. **Start Frontend**:
+   ```bash
+   cd lendingclub-modern/frontend
+   npm run dev
+   ```
+   Access at: [http://localhost:3000](http://localhost:3000)
 
-Logistic Regression and Random Forest have been determined good regressors in pycaret and they are re-trained with sklearn to allow Heroku deployment with around 2% accuracy drop in both 
-Logistic Regression and Random Forest with 50 trees(down from 100 trees for Heroku performance). Despite this accuracy drop, it still achieves 78% prediction accuracy on testing data with a 15% out of 100% split.
+---
 
-For successful Heroku deployment, a paid option is selected for one month due to RAM constraints causing the entire app crash at starting up or with user interaction on the web page. This perhaps is caused by dash core component datatable fetching data from dataframe while processing multiple aggregation functions and my dataset is relatively large. An optimal solution is to mannually make these aggregated dataframes into .csv and fetch data from. However, this defeats the idea of utilizing Dash + Plotly as an easy-to-use data exploration tool while staying interactive.
+## 📊 Legacy Version (Original Dash App)
 
-Despite careful scrutiny on code simplification to make it more efficient to run on Heroku servers, the app would constantly max out 4GB RAM and cause performance concerns. 
-Link to the Heroku app is: https://lendingdash.herokuapp.com/
-Many components have been implemented using dbc(dash bootstrap component) and dcc(dash core component). Links to these components can be found here: https://dash-bootstrap-components.opensource.faculty.ai/ and https://dash.plotly.com/dash-core-components.
+The original interactive tool built with Dash and Plotly for data exploration.
 
-********
-Update 12/20/2020: a working instance of this app uploaded to $5/month option on PythonAnywhere is performaing much better than on Heroku where it required a $500/1dyno/month; will try to implement the original pycaret model on PythonAnywhere; Heroku server has been downgraded.
+### Features
+- **Investor EDA**: Global views of loan status and regional distributions.
+- **Predictor**: Logistic Regression and Random Forest models for odds estimation.
 
+### Running the Legacy Version
+```bash
+python index.py
+```
+Access at: [http://127.0.0.1:8050](http://127.0.0.1:8050)
 
-********
-PS: when you are selecting from a dropdown, the app will update the graph y-axis, it's just super slow on Heroku. Yes, every dropdown works and just takes time! And yes, many fields have hover tooltips such as in datatables where it can show descriptions for columns. Yes, these dash datatables work like normal spreadsheet, however, the editing feauture has been disabled while normal sorting feature is still available.
+---
+
+## 📂 Dataset Info
+The project utilizes the LendingClub dataset (2007-2017) originally from Kaggle.
+- **Size**: ~700MB raw data.
+- **Cleaning**: Pre-processed in Jupyter to handle feature selection and aggregation.
+
+## 🛠️ Requirements
+- **Python 3.11+**
+- **Node.js 25+**
+- **Poetry** (for modern backend)
