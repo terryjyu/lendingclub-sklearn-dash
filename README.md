@@ -8,10 +8,16 @@ This repository now contains two versions of the application:
 1.  **Modern Full-Stack Version**: A Next.js + FastAPI application with LightGBM.
 2.  **Legacy Dash Version**: The original Dash/Plotly application with recent visual polish.
 
+## 📜 Project History & Evolution
+
+This project has a rich history serving as a portfolio showcase:
+*   **2020 (v1)**: Originally deployed on **Heroku**. Faced performance bottlenecks due to the heavy ML models.
+*   **2021 (v2)**: Migrated to **PythonAnywhere**. Achieved significantly better performance and served as a key resume project.
+*   **2026 (v3 - Current)**: Complete **Full-Stack Rewrite**. Re-launched with modern technologies (FastAPI, Next.js, LightGBM) to demonstrate senior-level engineering capabilities while preserving the original data science core.
+
 ---
 
-## ✨ Modern Version (2024 Rewrite)
-
+## ✨ Modern Version (2026 Rewrite)
 The modern version is a full-stack rewrite designed for high performance and premium UI/UX.
 
 ### Architecture
