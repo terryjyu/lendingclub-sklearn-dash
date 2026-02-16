@@ -15,6 +15,15 @@ MODEL_PATH = PATH.joinpath("../models").resolve()
 
 df2 = pd.read_csv(DATA_PATH.joinpath("lc_cleaned_combined.csv"), low_memory=True)
 
+# Load models and encoders globally to prevent reloading on every callback
+try:
+    lr_model = joblib.load(MODEL_PATH.joinpath('sklearn_lr.joblib'))
+    rf_model = joblib.load(MODEL_PATH.joinpath('sklearn_rf.joblib'))
+    encoders = joblib.load(MODEL_PATH.joinpath('label_encoders.joblib'))
+except Exception as e:
+    print(f"Error loading models: {e}")
+    lr_model, rf_model, encoders = None, None, None
+
 def create_info_card(image_src, title, description, link, color="pink"):
     """Create a glassmorphic info card with vibrant accents"""
     return dmc.Card(
@@ -61,7 +70,7 @@ layout = html.Div([
                     "Loan Approval Prediction",
                     order=1,
                     ta="center",
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 text-4xl md:text-5xl font-bold mb-2"
+                    className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 text-4xl md:text-5xl font-bold mb-2"
                 ),
                 dmc.Text(
                     "Powered by AI & Machine Learning",
@@ -71,8 +80,8 @@ layout = html.Div([
                     className="mb-2"
                 ),
                 dmc.Group([
-                    dmc.Badge("Random Forest", color="cyan", variant="dot", size="lg"),
-                    dmc.Badge("Logistic Regression", color="violet", variant="dot", size="lg"),
+                    dmc.Badge("Leagacy Random Forest", color="blue", variant="dot", size="lg"),
+                    dmc.Badge("Logistic Regression", color="cyan", variant="dot", size="lg"),
                 ], justify="center", className="mb-4")
             ]),
             
@@ -157,7 +166,7 @@ layout = html.Div([
                         ),
                     ], gap="lg", p="xl")
                 ], shadow="xl", radius="xl", withBorder=False, 
-                   className="backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300")
+                   className="backdrop-blur-md bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800/70 transition-all duration-300")
             ], span={"base": 12, "md": 6}),
 
             # Right Column: Financial Info & Action
@@ -220,15 +229,17 @@ layout = html.Div([
                             ],
                             id="Get Pre-approved",
                             color="cyan",
-                            gradient={"from": "cyan", "to": "purple", "deg": 45},
+                            gradient={"from": "blue", "to": "cyan", "deg": 45},
                             variant="gradient",
                             fullWidth=True,
                             size="lg",
                             className="mt-4 shadow-lg shadow-cyan-500/50 hover:shadow-cyan-500/70 hover:scale-105 transition-all duration-300"
-                        )
+                        ),
+                        
+                        html.Div(id='prediction_result', className="w-full")
                     ], gap="lg", p="xl")
                 ], shadow="xl", radius="xl", withBorder=False,
-                   className="backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300")
+                   className="backdrop-blur-md bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800/70 transition-all duration-300")
             ], span={"base": 12, "md": 6}),
         ], gutter="xl", className="mb-12"),
 
@@ -277,60 +288,31 @@ layout = html.Div([
         ], withBorder=False, className="backdrop-blur-md bg-white/5 border border-white/10 p-6", radius="lg"),
         
     ], fluid=True, className="py-12 px-4"),
-    
-    # Modal
-    dmc.Modal(
-        id="modal-centered",
-        title=dmc.Group([
-            DashIconify(icon="carbon:checkmark-filled", color="green", width=24),
-            dmc.Text("Your Approval Prediction", fw=700, size="lg")
-        ], gap="sm"),
-        children=[
-            dmc.Stack([
-                dmc.Text(id='modal_result', size="lg", fw=500, ta="center", className="p-6 text-white"),
-                dmc.Text("This prediction is for informational purposes only.", size="xs", c="dimmed", ta="center")
-            ], gap="md")
-        ],
-        centered=True,
-        opened=False,
-        size="lg",
-        zIndex=10000,
-        className="backdrop-blur-md"
-    )
 ])
 
 # Callbacks
 
-# Modal Toggle
-@app.callback(
-    Output("modal-centered", "opened"),
-    [Input("Get Pre-approved", "n_clicks")],
-    [State("modal-centered", "opened")],
-    prevent_initial_call=True
-)
-def toggle_modal(n, opened):
-    if n:
-        return not opened
-    return opened
-
 # Prediction Logic
 @app.callback(
-    Output(component_id='modal_result', component_property='children'),
-    [Input(component_id='term', component_property='value'),
-     Input(component_id='loan_amnt', component_property='value'),
-     Input(component_id='grade', component_property='value'),
-     Input(component_id='home_ownership', component_property='value'),
-     Input(component_id='annual_inc', component_property='value'),
-     Input(component_id='purpose', component_property='value'),
-     Input(component_id='emp_length', component_property='value')])
-def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose, emp_length):
+    Output('prediction_result', 'children'),
+    [Input('Get Pre-approved', 'n_clicks')],
+    [State('term', 'value'),
+     State('loan_amnt', 'value'),
+     State('grade', 'value'),
+     State('home_ownership', 'value'),
+     State('annual_inc', 'value'),
+     State('purpose', 'value'),
+     State('emp_length', 'value')],
+    prevent_initial_call=True)
+def handle_prediction(n_clicks, term, loan_amnt, grade, home_ownership, annual_inc, purpose, emp_length):
+    if n_clicks is None:
+        return no_update
+        
     if all([term, loan_amnt is not None, grade, home_ownership, annual_inc is not None, purpose, emp_length]):
+        if None in [lr_model, rf_model, encoders]:
+            return dmc.Alert("Models not loaded. Please contact support.", title="System Error", color="red")
+
         try:
-            # Load models and encoders
-            lr_model = joblib.load(MODEL_PATH.joinpath('sklearn_lr.joblib'))
-            rf_model = joblib.load(MODEL_PATH.joinpath('sklearn_rf.joblib'))
-            encoders = joblib.load(MODEL_PATH.joinpath('label_encoders.joblib'))
-            
             # Create DataFrame from user input
             user_df = pd.DataFrame([{
                 'loan_amnt': loan_amnt,
@@ -348,7 +330,7 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose, emp_l
                 try:
                     user_df[col] = le.transform(user_df[col].astype(str))
                 except ValueError:
-                    return f'Error: Invalid input value for {col}'
+                    return dmc.Alert(f'Error: Invalid input value for {col}', title="Validation Error", color="red")
 
             # Ensure column order matches training
             user_df = user_df[['loan_amnt', 'term', 'grade', 'emp_length', 'home_ownership', 'annual_inc', 'purpose']]
@@ -361,24 +343,39 @@ def getresult(term, loan_amnt, grade, home_ownership, annual_inc, purpose, emp_l
             # Create visually appealing result message
             percentage = f"{prob:.1%}"
             emoji = "🎉" if prob > 0.7 else "✅" if prob > 0.5 else "⚠️"
+            bg_color = "bg-green-500/10" if prob > 0.5 else "bg-yellow-500/10"
+            border_color = "border-green-500/30" if prob > 0.5 else "border-yellow-500/30"
             
-            if loan_amnt < 1000 or loan_amnt > 40000:
-                return html.Div([
-                    dmc.Text(f"{emoji} {percentage}", size="3rem", fw=700, ta="center", className="mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400"),
-                    dmc.Text(f"Approval Probability", size="sm", c="dimmed", ta="center", className="mb-2"),
-                    dmc.Divider(className="my-4"),
-                    dmc.Text(f"Although LendingClub typically offers loans between $1,000 and $40,000, based on your information, you have a {percentage} chance of approval for ${loan_amnt:,}.", ta="center")
-                ])
-            else:
-                return html.Div([
-                    dmc.Text(f"{emoji} {percentage}", size="3rem", fw=700, ta="center", className="mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400"),
-                    dmc.Text(f"Approval Probability", size="sm", c="dimmed", ta="center", className="mb-2"),
-                    dmc.Divider(className="my-4"),
-                    dmc.Text(f"Based on your information, you have a {percentage} chance of getting approved for a ${loan_amnt:,} loan from LendingClub.", ta="center")
-                ])
+            result_content = dmc.Card(
+                children=[
+                    dmc.Group([
+                        dmc.Text("Approval Odds:", fw=500, c="gray.3"),
+                        dmc.Badge("High" if prob > 0.7 else "Moderate" if prob > 0.5 else "Low", 
+                                 color="green" if prob > 0.5 else "yellow", 
+                                 variant="light")
+                    ], justify="space-between", className="mb-2"),
+                    
+                    dmc.Text(f"{percentage}", size="3.5rem", fw=800, ta="center", 
+                            className="leading-none text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-emerald-400 to-teal-400 drop-shadow-lg"),
+                            
+                    dmc.Text(f"Estimated for ${loan_amnt:,}", size="sm", c="dimmed", ta="center", className="mt-1"),
+                    
+                    dmc.Divider(className="my-3 border-gray-600"),
+                    
+                    dmc.Text(
+                        f"Based on your profile, you have a {percentage} chance of approval.", 
+                        size="sm", c="white", ta="center"
+                    )
+                ],
+                className=f"mt-6 border {border_color} {bg_color} backdrop-blur-sm animate-fade-in-up",
+                radius="lg",
+                p="lg"
+            )
+            
+            return result_content
 
         except Exception as e:
             print(f"Prediction Error: {e}")
             return dmc.Alert(f'Unable to generate prediction: {str(e)}', title="Error", color="red")
     else:
-        return dmc.Text('Please fill in all fields to get your prediction.', c="yellow", ta="center")
+        return dmc.Alert('Please fill in all fields to get your prediction.', title="Missing Information", color="yellow")

@@ -9,8 +9,8 @@ from apps import page1, page2
 # Global Background
 global_bg = html.Div(
     [
-        html.Div(className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900", style={"zIndex": -2}),
-        html.Div(className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]", style={"zIndex": -1}),
+        html.Div(className="fixed inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-gray-900", style={"zIndex": -2}),
+        html.Div(className="fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(56,189,248,0.1),rgba(0,0,0,0))]", style={"zIndex": -1}),
     ]
 )
 
@@ -85,4 +85,4 @@ def display_page(pathname):
     return page1.layout # Changing default to page 1 for convenience, or page 2 if preferred. User didn't specify.
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8051)
